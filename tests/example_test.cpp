@@ -28,7 +28,7 @@ TEST(StringTest, Length) {
 // --- Fixture example (like beforeEach/afterEach in vitest) ---
 
 class VectorTest : public ::testing::Test {
-   protected:
+protected:
     std::vector<int> vec;
 
     void SetUp() override {

@@ -3,7 +3,8 @@ Checks: >
     bugprone-*,
     modernize-*,
     readability-*,
-    -modernize-use-trailing-return-type
+    -modernize-use-trailing-return-type,
+    -readability-magic-numbers
 
 HeaderFilterRegex: '(apps|tests|include)/.*'
 

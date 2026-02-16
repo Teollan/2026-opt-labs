@@ -1,6 +1,78 @@
-#include <cstdio>
+#include <iostream>
+#include <format>
+#include <string>
+
+#include <StringSource.class.hpp>
+#include <Tokenizer.class.hpp>
+#include <SymbolTables.class.hpp>
+
+std::string getTokenGroupLabel(unsigned int code) {
+    auto group = SymbolTables::determineGroup(code);
+
+    switch (group) {
+        case Delimiter:
+            return "Delimiter";
+        case Keyword:
+            return "Keyword";
+        case Literal:
+            return "Literal";
+        case Identifier:
+            return "Identifier";
+        default:
+            return "Unknown";
+    }
+}
 
 int main() {
-    std::printf("Hello, world!\n");
+    StringSource source(
+        "PROGRAM TEST;\n"
+        "CONST\n"
+        "  (* This is a comment. *)\n"
+        "  X = '10$EXP(20)'#;\n"
+        "  Y = '30,40'\n"
+        "BEGIN\n"
+        "END."
+    );
+
+    SymbolTables tables;
+
+    Tokenizer tokenizer(source, tables);
+
+    auto tokens = tokenizer.getTokens();
+
+    std::cout
+        << std::format("{:>5}", "Code")
+        << " | "
+        << std::format("{:>3}", "Row")
+        << " | "
+        << std::format("{:>3}", "Col")
+        << " | "
+        << std::format("{:10}", "Group")
+        << " | "
+        << "Value"
+        << std::endl;
+
+    for (const auto& token : tokens) {
+        std::cout
+        << std::format("{:>5}", token.code)
+        << " | "
+        << std::format("{:>3}", token.line)
+        << " | "
+        << std::format("{:>3}", token.column)
+        << " | "
+        << std::format("{:10}", getTokenGroupLabel(token.code))
+        << " | "
+        << tables.lookup(token.code)
+        << std::endl;
+    }
+
+    for (const auto& comment : tokenizer.comments) {
+        std::cout << "Comment: " << comment << std::endl;
+    }
+
+    for (const auto& error : tokenizer.errors) {
+        std::cout << "Error: " << error << std::endl;
+    }
+
     return 0;
 }
