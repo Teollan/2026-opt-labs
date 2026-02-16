@@ -8,7 +8,8 @@ target_include_directories(compiler_lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/modules/Source/implementations/StringSource
     ${CMAKE_CURRENT_SOURCE_DIR}/modules/Source/implementations/FileSource
     ${CMAKE_CURRENT_SOURCE_DIR}/modules/Tokenizer
-    ${CMAKE_CURRENT_SOURCE_DIR}/modules/SymbolTables
+    ${CMAKE_CURRENT_SOURCE_DIR}/modules/SymbolStore
+    ${CMAKE_CURRENT_SOURCE_DIR}/modules/CharacterAttributes
 )
 
 set_project_warnings(compiler_lib)

@@ -1,49 +1,51 @@
 #include "Tokenizer.class.hpp"
 
-Tokenizer::Tokenizer(Source& source, SymbolTables& tables) :
+#include "CharacterAttributes.class.hpp"
+
+Tokenizer::Tokenizer(Source& source, SymbolStore& symbols, CharacterAttributes& attributes) :
     source(source),
-    tables(tables) {}
+    symbols(symbols),
+    attributes(attributes) {}
 
 std::vector<Token> Tokenizer::getTokens() {
     std::string token;
     unsigned int code;
-    Symbol symbol;
+    char character = source.current();
 
-    while (!source.isEnd()) {
-        symbol = source.getCurrentSymbol();
-
-        switch (symbol.getCategory()) {
+    while (!source.done()) {
+        switch (attributes.lookup(character)) {
             // Automata state: WHITESPACE
-            case SymbolCategory::Whitespace:
-                source.advance();
+            case Attribute::Whitespace:
+                character = source.read();
+
                 break;
 
             // Automata state: CONSTANT_IN
-            case SymbolCategory::Digit:
-                while (!source.isEnd() && symbol.getCategory() == SymbolCategory::Digit) {
-                    token += symbol.getCharacter();
-                    symbol = source.advance();
+            case Attribute::Digit:
+                while (!source.done() && attributes.lookup(character) == Attribute::Digit) {
+                    token += character;
+                    character = source.read();
                 };
 
                 // Automata state: TOKEN_OUT
-                code = tables.declareLiteral(token);
+                code = symbols.declareLiteral(token);
                 addToken(code, 0, 0);
                 token.clear();
 
                 break;
 
             // Automata state: IDENTIFIER_IN
-            case SymbolCategory::Letter:
+            case Attribute::Letter:
                 do {
-                    token += symbol.getCharacter();
-                    symbol = source.advance();
-                } while (!source.isEnd() && (symbol.getCategory() == SymbolCategory::Letter || symbol.getCategory() == SymbolCategory::Digit));
+                    token += character;
+                    character = source.read();
+                } while (!source.done() && (attributes.lookup(character) == Attribute::Letter || attributes.lookup(character) == Attribute::Digit));
 
                 // Automata state: TOKEN_OUT
-                if (tables.isKeyword(token)) {
-                    code = tables.declareKeyword(token);
+                if (symbols.isKeyword(token)) {
+                    code = symbols.declareKeyword(token);
                 } else {
-                    code = tables.declareIdentifier(token);
+                    code = symbols.declareIdentifier(token);
                 }
                 addToken(code, 0, 0);
                 token.clear();
@@ -51,12 +53,12 @@ std::vector<Token> Tokenizer::getTokens() {
                 break;
 
             // Automata state: BEGIN_COMMENT
-            case SymbolCategory::Comment:
-                token += symbol.getCharacter();
-                symbol = source.advance();
+            case Attribute::Comment:
+                token += character;
+                character = source.read();
 
                 // Automata state: DELIMITER_OUT
-                if (symbol.getCharacter() != '*') {
+                if (character != '*') {
                     addToken(token[0], 0, 0);
                     token.clear();
 
@@ -64,12 +66,12 @@ std::vector<Token> Tokenizer::getTokens() {
                 }
 
                 // Automata state: COMMENT_IN
-                while (!source.isEnd()) {
-                    token += symbol.getCharacter();
-                    symbol = source.advance();
+                while (!source.done()) {
+                    token += character;
+                    character = source.read();
 
                     // Automata state: ERROR_COMMENT_NOT_CLOSED
-                    if (source.isEnd()) {
+                    if (source.done()) {
                         addError("Comment not closed: " + token);
                         token.clear();
 
@@ -77,17 +79,17 @@ std::vector<Token> Tokenizer::getTokens() {
                     }
 
                     // Automata state: COMMENT_END
-                    while (!source.isEnd()) {
-                        token += symbol.getCharacter();
-                        symbol = source.advance();
+                    while (!source.done()) {
+                        token += character;
+                        character = source.read();
 
-                        if (symbol.getCharacter() != '*') {
+                        if (character != '*') {
                             break;
                         }
                     }
 
                     // Automata state: ERROR_COMMENT_NOT_CLOSED
-                    if (source.isEnd()) {
+                    if (source.done()) {
                         addError("Comment not closed: " + token);
                         token.clear();
 
@@ -95,11 +97,11 @@ std::vector<Token> Tokenizer::getTokens() {
                     }
 
                     // Automata state: COMMENT_OUT
-                    if (symbol.getCharacter() == ')') {
-                        token += symbol.getCharacter();
-                        addComment(token);
+                    if (character == ')') {
+                        token += character;
+                        character = source.read();
 
-                        source.advance();
+                        addComment(token);
                         token.clear();
 
                         break;
@@ -108,16 +110,18 @@ std::vector<Token> Tokenizer::getTokens() {
 
                 break;
 
-            case SymbolCategory::SingleDelimiter:
-                // Automata state: DELIMITER_OUT
-                addToken(static_cast<unsigned int>(symbol.getCharacter()), 0, 0);
-                symbol = source.advance();
+            // Automata state: DELIMITER_OUT
+            case Attribute::Delimiter:
+                addToken(static_cast<unsigned int>(character), 0, 0);
+                character = source.read();
+
                 break;
 
-            case SymbolCategory::Invalid:
-                // Automata state: ERROR_INVALID_SYMBOL
-                addError(std::string("Invalid symbol: ") + symbol.getCharacter());
-                symbol = source.advance();
+            // Automata state: ERROR_INVALID_SYMBOL
+            case Attribute::Invalid:
+                addError(std::string("Invalid symbol: ") + character);
+                character = source.read();
+                
                 break;
         }
     }

@@ -1,0 +1,19 @@
+#include "FileSource.class.hpp"
+
+FileSource::FileSource(const std::string& filePath) : 
+    file(filePath),
+    character(static_cast<char>(file.get())) {}
+
+char FileSource::current() {
+    return character;
+}
+
+char FileSource::read() {
+    character = static_cast<char>(file.get());
+    
+    return character;
+}
+
+bool FileSource::done() {
+    return file.eof();
+}

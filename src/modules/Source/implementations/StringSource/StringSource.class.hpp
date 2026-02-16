@@ -2,8 +2,7 @@
 #define STRING_SOURCE_CLASS_HPP
 
 #include <string>
-#include <Symbol.class.hpp>
-#include <Source.interface.hpp>
+#include "Source.interface.hpp"
 
 class StringSource : public Source {
 private:
@@ -13,9 +12,9 @@ private:
 public:
     StringSource(const std::string source);
 
-    Symbol getCurrentSymbol() override;
-    Symbol advance() override;
-    bool isEnd() override;
+    char current() override;
+    char read() override;
+    bool done() override;
 };
 
 #endif
