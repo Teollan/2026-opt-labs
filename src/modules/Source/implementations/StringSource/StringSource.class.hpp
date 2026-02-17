@@ -2,7 +2,7 @@
 #define STRING_SOURCE_CLASS_HPP
 
 #include <string>
-#include "Source.interface.hpp"
+#include "Source.class.hpp"
 
 class StringSource : public Source {
 private:

@@ -34,23 +34,23 @@ int main() {
     CharacterAttributes attributes;
     Tokenizer tokenizer(source, symbols, attributes);
 
-    auto tokens = tokenizer.getTokens();
+    tokenizer.scan();
 
     std::cout << std::format("{:>5}", "Code") << " | " << std::format("{:>3}", "Row") << " | "
               << std::format("{:>3}", "Col") << " | " << std::format("{:10}", "Group") << " | "
               << "Value" << std::endl;
 
-    for (const auto& token : tokens) {
-        std::cout << std::format("{:>5}", token.code) << " | " << std::format("{:>3}", token.row) << " | "
-                  << std::format("{:>3}", token.column) << " | " << std::format("{:10}", getTokenGroupLabel(token.code))
+    for (const auto& token : tokenizer.tokens()) {
+        std::cout << std::format("{:>5}", token.code) << " | " << std::format("{:>3}", token.row + 1) << " | "
+                  << std::format("{:>3}", token.column + 1) << " | " << std::format("{:10}", getTokenGroupLabel(token.code))
                   << " | " << symbols.lookup(token.code) << std::endl;
     }
 
-    for (const auto& comment : tokenizer.comments) {
+    for (const auto& comment : tokenizer.comments()) {
         std::cout << "Comment: " << comment << std::endl;
     }
 
-    for (const auto& error : tokenizer.errors) {
+    for (const auto& error : tokenizer.errors()) {
         std::cout << "Error: " << error << std::endl;
     }
 

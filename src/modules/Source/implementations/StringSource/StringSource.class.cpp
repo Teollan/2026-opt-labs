@@ -9,6 +9,7 @@ char StringSource::current() {
 }
 
 char StringSource::read() {
+    advance(*iterator);
     iterator++;
 
     return *iterator;

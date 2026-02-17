@@ -3,7 +3,7 @@
 
 #include <string>
 #include <fstream>
-#include "Source.interface.hpp"
+#include "Source.class.hpp"
 
 class FileSource : public Source {
 private:

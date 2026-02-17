@@ -1,4 +1,5 @@
 file(GLOB_RECURSE LIB_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/modules/**/*.cpp")
+list(FILTER LIB_SOURCES EXCLUDE REGEX ".*\\.test\\.cpp$")
 
 add_library(compiler_lib ${LIB_SOURCES})
 

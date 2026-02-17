@@ -7,7 +7,7 @@ Tokenizer::Tokenizer(Source& source, SymbolStore& symbols, CharacterAttributes& 
     symbols(symbols),
     attributes(attributes) {}
 
-std::vector<Token> Tokenizer::getTokens() {
+void Tokenizer::scan() {
     std::string token;
     unsigned int code;
     char character = source.current();
@@ -29,7 +29,13 @@ std::vector<Token> Tokenizer::getTokens() {
 
                 // Automata state: TOKEN_OUT
                 code = symbols.declareLiteral(token);
-                addToken(code, 0, 0);
+
+                addToken({
+                    .code = code,
+                    .row = source.row(),
+                    .column = source.column() - static_cast<unsigned int>(token.length()), // Point to first character of the token
+                });
+
                 token.clear();
 
                 break;
@@ -47,7 +53,13 @@ std::vector<Token> Tokenizer::getTokens() {
                 } else {
                     code = symbols.declareIdentifier(token);
                 }
-                addToken(code, 0, 0);
+
+                addToken({
+                    .code = code,
+                    .row = source.row(),
+                    .column = source.column() - static_cast<unsigned int>(token.length()), // Point to first character of the token
+                });
+
                 token.clear();
 
                 break;
@@ -59,7 +71,12 @@ std::vector<Token> Tokenizer::getTokens() {
 
                 // Automata state: DELIMITER_OUT
                 if (character != '*') {
-                    addToken(token[0], 0, 0);
+                    addToken({
+                        .code = static_cast<unsigned int>(token[0]),
+                        .row = source.row(),
+                        .column = source.column() - 1, // Point to previous character
+                    });
+
                     token.clear();
 
                     break;
@@ -112,7 +129,12 @@ std::vector<Token> Tokenizer::getTokens() {
 
             // Automata state: DELIMITER_OUT
             case Attribute::Delimiter:
-                addToken(static_cast<unsigned int>(character), 0, 0);
+                addToken({
+                    .code = static_cast<unsigned int>(character),
+                    .row = source.row(),
+                    .column = source.column(),
+                });
+
                 character = source.read();
 
                 break;
@@ -126,17 +148,28 @@ std::vector<Token> Tokenizer::getTokens() {
         }
     }
 
-    return tokens;
 }
 
-void Tokenizer::addToken(const unsigned int code, unsigned int line, unsigned int column) {
-    tokens.push_back({code, line, column});
+const std::vector<Token>& Tokenizer::tokens() const {
+    return _tokens;
+}
+
+const std::vector<std::string>& Tokenizer::errors() const {
+    return _errors;
+}
+
+const std::vector<std::string>& Tokenizer::comments() const {
+    return _comments;
+}
+
+void Tokenizer::addToken(const Token& token) {
+    _tokens.push_back(token);
 }
 
 void Tokenizer::addComment(const std::string& comment) {
-    comments.push_back(comment);
+    _comments.push_back(comment);
 }
 
 void Tokenizer::addError(const std::string& error) {
-    errors.push_back(error);
+    _errors.push_back(error);
 }

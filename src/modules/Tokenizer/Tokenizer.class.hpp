@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <unordered_map>
-#include "Source.interface.hpp"
+#include "Source.class.hpp"
 #include "SymbolStore.class.hpp"
 #include "CharacterAttributes.class.hpp"
 
@@ -14,22 +14,27 @@ struct Token {
 };
 
 class Tokenizer {
-public:
+private:
     Source& source;
     SymbolStore& symbols;
     CharacterAttributes attributes;
 
-    std::vector<Token> tokens;
-    std::vector<std::string> errors;
-    std::vector<std::string> comments;
+    std::vector<Token> _tokens;
+    std::vector<std::string> _errors;
+    std::vector<std::string> _comments;
 
 public:
     Tokenizer(Source& source, SymbolStore& symbols, CharacterAttributes& attributes);
 
-    std::vector<Token> getTokens();
-    void addToken(const unsigned int code, unsigned int line, unsigned int column);
+    void scan();
+
+    void addToken(const Token& token);
     void addComment(const std::string& comment);
     void addError(const std::string& error);
+
+    const std::vector<Token>& tokens() const;
+    const std::vector<std::string>& errors() const;
+    const std::vector<std::string>& comments() const;
 };
 
 #endif
