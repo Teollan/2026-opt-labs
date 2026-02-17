@@ -28,7 +28,7 @@ void Tokenizer::scan() {
                 };
 
                 // Automata state: TOKEN_OUT
-                code = symbols.declareLiteral(token);
+                code = symbols.resolveLiteral(token);
 
                 addToken({
                     .code = code,
@@ -49,9 +49,9 @@ void Tokenizer::scan() {
 
                 // Automata state: TOKEN_OUT
                 if (symbols.isKeyword(token)) {
-                    code = symbols.declareKeyword(token);
+                    code = symbols.resolveKeyword(token);
                 } else {
-                    code = symbols.declareIdentifier(token);
+                    code = symbols.resolveIdentifier(token);
                 }
 
                 addToken({

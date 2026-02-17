@@ -5,12 +5,12 @@
 #include <iostream>
 #include <string>
 
-std::string getTokenGroupLabel(unsigned int code) {
-    auto type = SymbolStore::determineSymbolType(code);
+std::string getTokenGroupLabel(const SymbolStore& symbols, unsigned int code) {
+    auto type = symbols.lookupType(code);
 
     switch (type) {
-        case SymbolType::Delimiter:
-            return "Delimiter";
+        case SymbolType::Character:
+            return "Character";
         case SymbolType::Keyword:
             return "Keyword";
         case SymbolType::Literal:
@@ -42,7 +42,7 @@ int main() {
 
     for (const auto& token : tokenizer.tokens()) {
         std::cout << std::format("{:>5}", token.code) << " | " << std::format("{:>3}", token.row + 1) << " | "
-                  << std::format("{:>3}", token.column + 1) << " | " << std::format("{:10}", getTokenGroupLabel(token.code))
+                  << std::format("{:>3}", token.column + 1) << " | " << std::format("{:10}", getTokenGroupLabel(symbols, token.code))
                   << " | " << symbols.lookup(token.code) << std::endl;
     }
 

@@ -10,7 +10,12 @@ add_executable(file_source_test ${CMAKE_SOURCE_DIR}/src/modules/Source/implement
 target_link_libraries(file_source_test PRIVATE GTest::gtest_main compiler_lib)
 set_project_warnings(file_source_test)
 
+add_executable(symbol_store_test ${CMAKE_SOURCE_DIR}/src/modules/SymbolStore/SymbolStore.class.test.cpp)
+target_link_libraries(symbol_store_test PRIVATE GTest::gtest_main compiler_lib)
+set_project_warnings(symbol_store_test)
+
 include(GoogleTest)
 gtest_discover_tests(example_test)
 gtest_discover_tests(string_source_test)
 gtest_discover_tests(file_source_test)
+gtest_discover_tests(symbol_store_test)
