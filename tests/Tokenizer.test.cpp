@@ -149,7 +149,7 @@ TEST_F(TokenizerTest, YieldsCorrectTokenForDelimiter) {
     tokenizer.scan();
     ASSERT_EQ(tokenizer.tokens().size(), 1);
     EXPECT_EQ(tokenizer.errors().size(), 0);
-    expectToken(tokenizer, 0, ";", SymbolType::Character, 0, 0);
+    expectToken(tokenizer, 0, ";", SymbolType::Delimiter, 0, 0);
 }
 
 TEST_F(TokenizerTest, YieldsCorrectTokenForOpenParenNotComment) {
@@ -159,7 +159,7 @@ TEST_F(TokenizerTest, YieldsCorrectTokenForOpenParenNotComment) {
     tokenizer.scan();
     ASSERT_EQ(tokenizer.tokens().size(), 1);
     EXPECT_EQ(tokenizer.errors().size(), 0);
-    expectToken(tokenizer, 0, "(", SymbolType::Character, 0, 0);
+    expectToken(tokenizer, 0, "(", SymbolType::Delimiter, 0, 0);
 }
 
 // --- Multi-token sequences ---
@@ -173,7 +173,7 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForProgramTest) {
     EXPECT_EQ(tokenizer.errors().size(), 0);
     expectToken(tokenizer, 0, "PROGRAM", SymbolType::Keyword, 0, 0);
     expectToken(tokenizer, 1, "TEST", SymbolType::Identifier, 0, 8);
-    expectToken(tokenizer, 2, ";", SymbolType::Character, 0, 12);
+    expectToken(tokenizer, 2, ";", SymbolType::Delimiter, 0, 12);
 }
 
 TEST_F(TokenizerTest, YieldsCorrectTokensForConstExpression) {
@@ -186,16 +186,16 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForConstExpression) {
     ASSERT_EQ(tokenizer.tokens().size(), 11);
     EXPECT_EQ(tokenizer.errors().size(), 0);
     expectToken(tokenizer, 0, "X", SymbolType::Identifier, 0, 0);     // col 0
-    expectToken(tokenizer, 1, "=", SymbolType::Character, 0, 2);      // col 2
-    expectToken(tokenizer, 2, "'", SymbolType::Character, 0, 4);      // col 4
+    expectToken(tokenizer, 1, "=", SymbolType::Delimiter, 0, 2);      // col 2
+    expectToken(tokenizer, 2, "'", SymbolType::Delimiter, 0, 4);      // col 4
     expectToken(tokenizer, 3, "10", SymbolType::Literal, 0, 5);       // col 5-6
-    expectToken(tokenizer, 4, "$", SymbolType::Character, 0, 7);      // col 7
+    expectToken(tokenizer, 4, "$", SymbolType::Delimiter, 0, 7);      // col 7
     expectToken(tokenizer, 5, "EXP", SymbolType::Keyword, 0, 8);      // col 8-10
-    expectToken(tokenizer, 6, "(", SymbolType::Character, 0, 11);     // col 11, '(' followed by '2' not '*'
+    expectToken(tokenizer, 6, "(", SymbolType::Delimiter, 0, 11);     // col 11, '(' followed by '2' not '*'
     expectToken(tokenizer, 7, "20", SymbolType::Literal, 0, 12);      // col 12-13
-    expectToken(tokenizer, 8, ")", SymbolType::Character, 0, 14);     // col 14
-    expectToken(tokenizer, 9, "'", SymbolType::Character, 0, 15);     // col 15
-    expectToken(tokenizer, 10, ";", SymbolType::Character, 0, 16);    // col 16
+    expectToken(tokenizer, 8, ")", SymbolType::Delimiter, 0, 14);     // col 14
+    expectToken(tokenizer, 9, "'", SymbolType::Delimiter, 0, 15);     // col 15
+    expectToken(tokenizer, 10, ";", SymbolType::Delimiter, 0, 16);    // col 16
 }
 
 TEST_F(TokenizerTest, YieldsCorrectTokensForCompactAssignment) {
@@ -206,13 +206,13 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForCompactAssignment) {
     ASSERT_EQ(tokenizer.tokens().size(), 8);
     EXPECT_EQ(tokenizer.errors().size(), 0);
     expectToken(tokenizer, 0, "Y", SymbolType::Identifier, 0, 0);
-    expectToken(tokenizer, 1, "=", SymbolType::Character, 0, 1);
-    expectToken(tokenizer, 2, "'", SymbolType::Character, 0, 2);
+    expectToken(tokenizer, 1, "=", SymbolType::Delimiter, 0, 1);
+    expectToken(tokenizer, 2, "'", SymbolType::Delimiter, 0, 2);
     expectToken(tokenizer, 3, "3", SymbolType::Literal, 0, 3);
-    expectToken(tokenizer, 4, ",", SymbolType::Character, 0, 4);
+    expectToken(tokenizer, 4, ",", SymbolType::Delimiter, 0, 4);
     expectToken(tokenizer, 5, "4", SymbolType::Literal, 0, 5);
-    expectToken(tokenizer, 6, "'", SymbolType::Character, 0, 6);
-    expectToken(tokenizer, 7, ";", SymbolType::Character, 0, 7);
+    expectToken(tokenizer, 6, "'", SymbolType::Delimiter, 0, 6);
+    expectToken(tokenizer, 7, ";", SymbolType::Delimiter, 0, 7);
 }
 
 TEST_F(TokenizerTest, YieldsCorrectTokensForBlockWithComment) {
@@ -224,7 +224,7 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForBlockWithComment) {
     EXPECT_EQ(tokenizer.errors().size(), 0);
     expectToken(tokenizer, 0, "BEGIN", SymbolType::Keyword, 0, 0);
     expectToken(tokenizer, 1, "END", SymbolType::Keyword, 2, 0);
-    expectToken(tokenizer, 2, ".", SymbolType::Character, 2, 3);
+    expectToken(tokenizer, 2, ".", SymbolType::Delimiter, 2, 3);
 }
 
 TEST_F(TokenizerTest, YieldsCorrectTokensForDelimitersOnly) {
@@ -238,8 +238,8 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForDelimitersOnly) {
     ASSERT_EQ(tokenizer.tokens().size(), 28);
     EXPECT_EQ(tokenizer.errors().size(), 0);
     // Spot-check first and last
-    expectToken(tokenizer, 0, ".", SymbolType::Character, 0, 0);
-    expectToken(tokenizer, 27, ".", SymbolType::Character, 0, 27);
+    expectToken(tokenizer, 0, ".", SymbolType::Delimiter, 0, 0);
+    expectToken(tokenizer, 27, ".", SymbolType::Delimiter, 0, 27);
 }
 
 TEST_F(TokenizerTest, YieldsCorrectTokensForLab1Example) {
@@ -260,7 +260,7 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForLab1Example) {
     // Row 0: PROGRAM TEST;
     expectToken(tokenizer, 0, "PROGRAM", SymbolType::Keyword, 0, 0);
     expectToken(tokenizer, 1, "TEST", SymbolType::Identifier, 0, 8);
-    expectToken(tokenizer, 2, ";", SymbolType::Character, 0, 12);
+    expectToken(tokenizer, 2, ";", SymbolType::Delimiter, 0, 12);
 
     // Row 1: CONST
     expectToken(tokenizer, 3, "CONST", SymbolType::Keyword, 1, 0);
@@ -269,33 +269,33 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForLab1Example) {
 
     // Row 3: X = '10$EXP(20)';
     expectToken(tokenizer, 4, "X", SymbolType::Identifier, 3, 2);
-    expectToken(tokenizer, 5, "=", SymbolType::Character, 3, 4);
-    expectToken(tokenizer, 6, "'", SymbolType::Character, 3, 6);
+    expectToken(tokenizer, 5, "=", SymbolType::Delimiter, 3, 4);
+    expectToken(tokenizer, 6, "'", SymbolType::Delimiter, 3, 6);
     expectToken(tokenizer, 7, "10", SymbolType::Literal, 3, 7);
-    expectToken(tokenizer, 8, "$", SymbolType::Character, 3, 9);
+    expectToken(tokenizer, 8, "$", SymbolType::Delimiter, 3, 9);
     expectToken(tokenizer, 9, "EXP", SymbolType::Keyword, 3, 10);
-    expectToken(tokenizer, 10, "(", SymbolType::Character, 3, 13);
+    expectToken(tokenizer, 10, "(", SymbolType::Delimiter, 3, 13);
     expectToken(tokenizer, 11, "20", SymbolType::Literal, 3, 14);
-    expectToken(tokenizer, 12, ")", SymbolType::Character, 3, 16);
-    expectToken(tokenizer, 13, "'", SymbolType::Character, 3, 17);
-    expectToken(tokenizer, 14, ";", SymbolType::Character, 3, 18);
+    expectToken(tokenizer, 12, ")", SymbolType::Delimiter, 3, 16);
+    expectToken(tokenizer, 13, "'", SymbolType::Delimiter, 3, 17);
+    expectToken(tokenizer, 14, ";", SymbolType::Delimiter, 3, 18);
 
     // Row 4: Y = '30,40';
     expectToken(tokenizer, 15, "Y", SymbolType::Identifier, 4, 2);
-    expectToken(tokenizer, 16, "=", SymbolType::Character, 4, 4);
-    expectToken(tokenizer, 17, "'", SymbolType::Character, 4, 6);
+    expectToken(tokenizer, 16, "=", SymbolType::Delimiter, 4, 4);
+    expectToken(tokenizer, 17, "'", SymbolType::Delimiter, 4, 6);
     expectToken(tokenizer, 18, "30", SymbolType::Literal, 4, 7);
-    expectToken(tokenizer, 19, ",", SymbolType::Character, 4, 9);
+    expectToken(tokenizer, 19, ",", SymbolType::Delimiter, 4, 9);
     expectToken(tokenizer, 20, "40", SymbolType::Literal, 4, 10);
-    expectToken(tokenizer, 21, "'", SymbolType::Character, 4, 12);
-    expectToken(tokenizer, 22, ";", SymbolType::Character, 4, 13);
+    expectToken(tokenizer, 21, "'", SymbolType::Delimiter, 4, 12);
+    expectToken(tokenizer, 22, ";", SymbolType::Delimiter, 4, 13);
 
     // Row 5: BEGIN
     expectToken(tokenizer, 23, "BEGIN", SymbolType::Keyword, 5, 0);
 
     // Row 6: END.
     expectToken(tokenizer, 24, "END", SymbolType::Keyword, 6, 0);
-    expectToken(tokenizer, 25, ".", SymbolType::Character, 6, 3);
+    expectToken(tokenizer, 25, ".", SymbolType::Delimiter, 6, 3);
 
     EXPECT_EQ(tokenizer.tokens().size(), 26);
 }
@@ -321,7 +321,7 @@ TEST_F(TokenizerTest, YieldsCorrectTokenForOpenParenAtEndOfInput) {
     tokenizer.scan();
     ASSERT_EQ(tokenizer.tokens().size(), 1);
     EXPECT_EQ(tokenizer.errors().size(), 0);
-    expectToken(tokenizer, 0, "(", SymbolType::Character, 0, 0);
+    expectToken(tokenizer, 0, "(", SymbolType::Delimiter, 0, 0);
 }
 
 // --- Error tests ---
@@ -395,7 +395,7 @@ TEST_F(TokenizerTest, YieldsErrorsInterleavedWithValidTokens) {
     expectError(tokenizer, 0, 0, 8);
     expectToken(tokenizer, 1, "TEST", SymbolType::Identifier, 0, 10);
     expectError(tokenizer, 1, 0, 15);
-    expectToken(tokenizer, 2, ";", SymbolType::Character, 0, 17);
+    expectToken(tokenizer, 2, ";", SymbolType::Delimiter, 0, 17);
 }
 
 // --- Unclosed comment errors ---
@@ -458,33 +458,33 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForSimpleProgram) {
     // Row 0: PROGRAM HELLO;
     expectToken(tokenizer, 0, "PROGRAM", SymbolType::Keyword, 0, 0);
     expectToken(tokenizer, 1, "HELLO", SymbolType::Identifier, 0, 8);
-    expectToken(tokenizer, 2, ";", SymbolType::Character, 0, 13);
+    expectToken(tokenizer, 2, ";", SymbolType::Delimiter, 0, 13);
 
     // Row 1: CONST
     expectToken(tokenizer, 3, "CONST", SymbolType::Keyword, 1, 0);
 
     // Row 2:   A = '5';
     expectToken(tokenizer, 4, "A", SymbolType::Identifier, 2, 2);
-    expectToken(tokenizer, 5, "=", SymbolType::Character, 2, 4);
-    expectToken(tokenizer, 6, "'", SymbolType::Character, 2, 6);
+    expectToken(tokenizer, 5, "=", SymbolType::Delimiter, 2, 4);
+    expectToken(tokenizer, 6, "'", SymbolType::Delimiter, 2, 6);
     expectToken(tokenizer, 7, "5", SymbolType::Literal, 2, 7);
-    expectToken(tokenizer, 8, "'", SymbolType::Character, 2, 8);
-    expectToken(tokenizer, 9, ";", SymbolType::Character, 2, 9);
+    expectToken(tokenizer, 8, "'", SymbolType::Delimiter, 2, 8);
+    expectToken(tokenizer, 9, ";", SymbolType::Delimiter, 2, 9);
 
     // Row 3:   B = '10';
     expectToken(tokenizer, 10, "B", SymbolType::Identifier, 3, 2);
-    expectToken(tokenizer, 11, "=", SymbolType::Character, 3, 4);
-    expectToken(tokenizer, 12, "'", SymbolType::Character, 3, 6);
+    expectToken(tokenizer, 11, "=", SymbolType::Delimiter, 3, 4);
+    expectToken(tokenizer, 12, "'", SymbolType::Delimiter, 3, 6);
     expectToken(tokenizer, 13, "10", SymbolType::Literal, 3, 7);
-    expectToken(tokenizer, 14, "'", SymbolType::Character, 3, 9);
-    expectToken(tokenizer, 15, ";", SymbolType::Character, 3, 10);
+    expectToken(tokenizer, 14, "'", SymbolType::Delimiter, 3, 9);
+    expectToken(tokenizer, 15, ";", SymbolType::Delimiter, 3, 10);
 
     // Row 4: BEGIN
     expectToken(tokenizer, 16, "BEGIN", SymbolType::Keyword, 4, 0);
 
     // Row 5: END.
     expectToken(tokenizer, 17, "END", SymbolType::Keyword, 5, 0);
-    expectToken(tokenizer, 18, ".", SymbolType::Character, 5, 3);
+    expectToken(tokenizer, 18, ".", SymbolType::Delimiter, 5, 3);
 
     EXPECT_EQ(tokenizer.tokens().size(), 19);
 }
@@ -508,7 +508,7 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForProgramWithCommentsAndExpressions) {
     // Row 0: PROGRAM CALC;
     expectToken(tokenizer, 0, "PROGRAM", SymbolType::Keyword, 0, 0);
     expectToken(tokenizer, 1, "CALC", SymbolType::Identifier, 0, 8);
-    expectToken(tokenizer, 2, ";", SymbolType::Character, 0, 12);
+    expectToken(tokenizer, 2, ";", SymbolType::Delimiter, 0, 12);
 
     // Row 1: CONST
     expectToken(tokenizer, 3, "CONST", SymbolType::Keyword, 1, 0);
@@ -517,43 +517,43 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForProgramWithCommentsAndExpressions) {
 
     // Row 3:   X = '100$EXP(2)';
     expectToken(tokenizer, 4, "X", SymbolType::Identifier, 3, 2);
-    expectToken(tokenizer, 5, "=", SymbolType::Character, 3, 4);
-    expectToken(tokenizer, 6, "'", SymbolType::Character, 3, 6);
+    expectToken(tokenizer, 5, "=", SymbolType::Delimiter, 3, 4);
+    expectToken(tokenizer, 6, "'", SymbolType::Delimiter, 3, 6);
     expectToken(tokenizer, 7, "100", SymbolType::Literal, 3, 7);
-    expectToken(tokenizer, 8, "$", SymbolType::Character, 3, 10);
+    expectToken(tokenizer, 8, "$", SymbolType::Delimiter, 3, 10);
     expectToken(tokenizer, 9, "EXP", SymbolType::Keyword, 3, 11);
-    expectToken(tokenizer, 10, "(", SymbolType::Character, 3, 14);
+    expectToken(tokenizer, 10, "(", SymbolType::Delimiter, 3, 14);
     expectToken(tokenizer, 11, "2", SymbolType::Literal, 3, 15);
-    expectToken(tokenizer, 12, ")", SymbolType::Character, 3, 16);
-    expectToken(tokenizer, 13, "'", SymbolType::Character, 3, 17);
-    expectToken(tokenizer, 14, ";", SymbolType::Character, 3, 18);
+    expectToken(tokenizer, 12, ")", SymbolType::Delimiter, 3, 16);
+    expectToken(tokenizer, 13, "'", SymbolType::Delimiter, 3, 17);
+    expectToken(tokenizer, 14, ";", SymbolType::Delimiter, 3, 18);
 
     // Row 4:   Y = '50,25';
     expectToken(tokenizer, 15, "Y", SymbolType::Identifier, 4, 2);
-    expectToken(tokenizer, 16, "=", SymbolType::Character, 4, 4);
-    expectToken(tokenizer, 17, "'", SymbolType::Character, 4, 6);
+    expectToken(tokenizer, 16, "=", SymbolType::Delimiter, 4, 4);
+    expectToken(tokenizer, 17, "'", SymbolType::Delimiter, 4, 6);
     expectToken(tokenizer, 18, "50", SymbolType::Literal, 4, 7);
-    expectToken(tokenizer, 19, ",", SymbolType::Character, 4, 9);
+    expectToken(tokenizer, 19, ",", SymbolType::Delimiter, 4, 9);
     expectToken(tokenizer, 20, "25", SymbolType::Literal, 4, 10);
-    expectToken(tokenizer, 21, "'", SymbolType::Character, 4, 12);
-    expectToken(tokenizer, 22, ";", SymbolType::Character, 4, 13);
+    expectToken(tokenizer, 21, "'", SymbolType::Delimiter, 4, 12);
+    expectToken(tokenizer, 22, ";", SymbolType::Delimiter, 4, 13);
 
     // Row 5-6: multiline comment — no tokens
 
     // Row 7:   Z = '0';
     expectToken(tokenizer, 23, "Z", SymbolType::Identifier, 7, 2);
-    expectToken(tokenizer, 24, "=", SymbolType::Character, 7, 4);
-    expectToken(tokenizer, 25, "'", SymbolType::Character, 7, 6);
+    expectToken(tokenizer, 24, "=", SymbolType::Delimiter, 7, 4);
+    expectToken(tokenizer, 25, "'", SymbolType::Delimiter, 7, 6);
     expectToken(tokenizer, 26, "0", SymbolType::Literal, 7, 7);
-    expectToken(tokenizer, 27, "'", SymbolType::Character, 7, 8);
-    expectToken(tokenizer, 28, ";", SymbolType::Character, 7, 9);
+    expectToken(tokenizer, 27, "'", SymbolType::Delimiter, 7, 8);
+    expectToken(tokenizer, 28, ";", SymbolType::Delimiter, 7, 9);
 
     // Row 8: BEGIN
     expectToken(tokenizer, 29, "BEGIN", SymbolType::Keyword, 8, 0);
 
     // Row 9: END.
     expectToken(tokenizer, 30, "END", SymbolType::Keyword, 9, 0);
-    expectToken(tokenizer, 31, ".", SymbolType::Character, 9, 3);
+    expectToken(tokenizer, 31, ".", SymbolType::Delimiter, 9, 3);
 
     EXPECT_EQ(tokenizer.tokens().size(), 32);
 }
@@ -573,7 +573,7 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForProgramWithEdgeCaseComments) {
     // Row 0: PROGRAM EDGE;
     expectToken(tokenizer, 0, "PROGRAM", SymbolType::Keyword, 0, 0);
     expectToken(tokenizer, 1, "EDGE", SymbolType::Identifier, 0, 8);
-    expectToken(tokenizer, 2, ";", SymbolType::Character, 0, 12);
+    expectToken(tokenizer, 2, ";", SymbolType::Delimiter, 0, 12);
 
     // Row 1: CONST
     expectToken(tokenizer, 3, "CONST", SymbolType::Keyword, 1, 0);
@@ -582,23 +582,23 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForProgramWithEdgeCaseComments) {
 
     // Row 3:   A = '1$EXP(0)';
     expectToken(tokenizer, 4, "A", SymbolType::Identifier, 3, 2);
-    expectToken(tokenizer, 5, "=", SymbolType::Character, 3, 4);
-    expectToken(tokenizer, 6, "'", SymbolType::Character, 3, 6);
+    expectToken(tokenizer, 5, "=", SymbolType::Delimiter, 3, 4);
+    expectToken(tokenizer, 6, "'", SymbolType::Delimiter, 3, 6);
     expectToken(tokenizer, 7, "1", SymbolType::Literal, 3, 7);
-    expectToken(tokenizer, 8, "$", SymbolType::Character, 3, 8);
+    expectToken(tokenizer, 8, "$", SymbolType::Delimiter, 3, 8);
     expectToken(tokenizer, 9, "EXP", SymbolType::Keyword, 3, 9);
-    expectToken(tokenizer, 10, "(", SymbolType::Character, 3, 12);
+    expectToken(tokenizer, 10, "(", SymbolType::Delimiter, 3, 12);
     expectToken(tokenizer, 11, "0", SymbolType::Literal, 3, 13);
-    expectToken(tokenizer, 12, ")", SymbolType::Character, 3, 14);
-    expectToken(tokenizer, 13, "'", SymbolType::Character, 3, 15);
-    expectToken(tokenizer, 14, ";", SymbolType::Character, 3, 16);
+    expectToken(tokenizer, 12, ")", SymbolType::Delimiter, 3, 14);
+    expectToken(tokenizer, 13, "'", SymbolType::Delimiter, 3, 15);
+    expectToken(tokenizer, 14, ";", SymbolType::Delimiter, 3, 16);
 
     // Row 4: BEGIN
     expectToken(tokenizer, 15, "BEGIN", SymbolType::Keyword, 4, 0);
 
     // Row 5: END.
     expectToken(tokenizer, 16, "END", SymbolType::Keyword, 5, 0);
-    expectToken(tokenizer, 17, ".", SymbolType::Character, 5, 3);
+    expectToken(tokenizer, 17, ".", SymbolType::Delimiter, 5, 3);
 
     EXPECT_EQ(tokenizer.tokens().size(), 18);
 }

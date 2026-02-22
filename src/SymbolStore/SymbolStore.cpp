@@ -4,12 +4,9 @@
 #include <stdexcept>
 
 SymbolStore::SymbolStore() {
-    // Reserve space for symbols to avoid reallocations
-    symbols.reserve(512);
-
     // Initialize ASCII symbols
-    for (int i = 0; i < 256; i++) {
-        declareCharacter(static_cast<char>(i));
+    for (size_t i = 0; i < ASCII_TABLE_SIZE; i++) {
+        declareDelimiter(static_cast<char>(i));
     }
 
     // Initialize keywords
@@ -20,8 +17,8 @@ SymbolStore::SymbolStore() {
     declareKeyword("EXP");
 }
 
-void SymbolStore::declareCharacter(const char character) {
-    symbols.emplace_back(std::string(1, character));
+void SymbolStore::declareDelimiter(const char character) {
+    symbols[character] = std::string(1, character);
 }
 
 void SymbolStore::declareKeyword(const std::string& keyword) {
@@ -29,8 +26,14 @@ void SymbolStore::declareKeyword(const std::string& keyword) {
         throw std::invalid_argument(std::format("Keyword \'{}\' is already declared", keyword));
     }
 
-    keywords[keyword] = symbols.size();
-    symbols.push_back(keyword);
+    size_t code = KEYWORDS_OFFSET + keywords.size();
+
+    if (code >= LITERALS_OFFSET) {
+        throw std::overflow_error("Exceeded maximum number of keywords");
+    }
+
+    keywords[keyword] = code;
+    symbols[code] = keyword;
 }
 
 size_t SymbolStore::resolveKeyword(const std::string& keyword) {
@@ -43,8 +46,12 @@ size_t SymbolStore::resolveKeyword(const std::string& keyword) {
 
 size_t SymbolStore::resolveIdentifier(const std::string& identifier) {
     if (!identifiers.contains(identifier)) {
-        identifiers[identifier] = symbols.size();
-        symbols.push_back(identifier);
+        size_t code = IDENTIFIERS_OFFSET + identifiers.size();
+        if (code >= MAX_TOKENS) {
+            throw std::overflow_error("Exceeded maximum number of identifiers");
+        }
+        identifiers[identifier] = code;
+        symbols[code] = identifier;
     }
 
     return identifiers[identifier];
@@ -52,8 +59,12 @@ size_t SymbolStore::resolveIdentifier(const std::string& identifier) {
 
 size_t SymbolStore::resolveLiteral(const std::string& literal) {
     if (!literals.contains(literal)) {
-        literals[literal] = symbols.size();
-        symbols.push_back(literal);
+        size_t code = LITERALS_OFFSET + literals.size();
+        if (code >= IDENTIFIERS_OFFSET) {
+            throw std::overflow_error("Exceeded maximum number of literals");
+        }
+        literals[literal] = code;
+        symbols[code] = literal;
     }
 
     return literals[literal];
@@ -64,22 +75,20 @@ bool SymbolStore::isKeyword(const std::string& token) const {
 }
 
 SymbolType SymbolStore::lookupType(size_t code) const {
-    const std::string& token = lookup(code);
-
-    if (code < 256) {
-        return SymbolType::Character;
+    if (code < KEYWORDS_OFFSET) {
+        return SymbolType::Delimiter;
     }
-
-    if (keywords.contains(token)) {
+    
+    if (code < LITERALS_OFFSET) {
         return SymbolType::Keyword;
     }
-
-    if (identifiers.contains(token)) {
-        return SymbolType::Identifier;
+    
+    if (code < IDENTIFIERS_OFFSET) {
+        return SymbolType::Literal;
     }
 
-    if (literals.contains(token)) {
-        return SymbolType::Literal;
+    if (code < MAX_TOKENS) {
+        return SymbolType::Identifier;
     }
 
     throw std::out_of_range(std::format("Symbol code {} is out of range", code));

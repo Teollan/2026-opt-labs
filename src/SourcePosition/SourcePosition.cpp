@@ -3,9 +3,7 @@
 SourcePosition::SourcePosition() : SourcePosition(4) {}
 
 SourcePosition::SourcePosition(uint8_t tabSize) :
-    tabSize(tabSize),
-    _row(0),
-    _column(0) {};
+    tabSize(tabSize) {};
 
 void SourcePosition::advance(char character) {
     switch (character) {

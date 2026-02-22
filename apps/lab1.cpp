@@ -9,7 +9,7 @@ std::string getTokenGroupLabel(const SymbolStore& symbols, unsigned int code) {
     auto type = symbols.lookupType(code);
 
     switch (type) {
-        case SymbolType::Character:
+        case SymbolType::Delimiter:
             return "Character";
         case SymbolType::Keyword:
             return "Keyword";

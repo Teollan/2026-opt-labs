@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include "Constants.hpp"
 
 enum class Attribute {
     Whitespace,
@@ -13,7 +14,7 @@ enum class Attribute {
 
 class CharacterAttributes {
 private:
-    std::array<Attribute, 256> attributes;
+    std::array<Attribute, ASCII_TABLE_SIZE> attributes;
 
 public:
     CharacterAttributes();

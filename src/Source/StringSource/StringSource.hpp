@@ -9,7 +9,7 @@ private:
     std::string::iterator iterator;
 
 public:
-    StringSource(const std::string source);
+    StringSource(std::string source);
 
     char current() override;
     char read() override;

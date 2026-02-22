@@ -3,22 +3,29 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include "Constants.hpp"
 
 enum class SymbolType {
-    Character,
+    Delimiter,
     Keyword,
     Literal,
     Identifier,
 };
 
+const size_t DELIMITERS_OFFSET = 0;
+const size_t KEYWORDS_OFFSET = ASCII_TABLE_SIZE;
+const size_t LITERALS_OFFSET = 500;
+const size_t IDENTIFIERS_OFFSET = 1000;
+const size_t MAX_TOKENS = 2000;
+
 class SymbolStore {
 private:
-    std::vector<std::string> symbols;
+    std::array<std::string, MAX_TOKENS> symbols;
     std::unordered_map<std::string, size_t> keywords;
     std::unordered_map<std::string, size_t> identifiers;
     std::unordered_map<std::string, size_t> literals;
 
-    void declareCharacter(const char character);
+    void declareDelimiter(char character);
     void declareKeyword(const std::string& keyword);
 
 public:

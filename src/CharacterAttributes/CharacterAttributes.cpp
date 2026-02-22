@@ -1,7 +1,7 @@
 #include "CharacterAttributes.hpp"
 
 CharacterAttributes::CharacterAttributes() {
-    for (int i = 0; i < 256; i++) {
+    for (size_t i = 0; i < ASCII_TABLE_SIZE; i++) {
         attributes[i] = Attribute::Invalid;
     }
 
@@ -17,7 +17,7 @@ CharacterAttributes::CharacterAttributes() {
         attributes[ch] = Attribute::Digit;
     }
 
-    // Letters (A-Z, a-z)
+    // Letters (A-Z)
     for (char ch = 'A'; ch <= 'Z'; ch++) {
         attributes[ch] = Attribute::Letter;
     }
