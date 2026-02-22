@@ -1,0 +1,6 @@
+PROGRAM HELLO;
+CONST
+  A = '5';
+  B = '10';
+BEGIN
+END.

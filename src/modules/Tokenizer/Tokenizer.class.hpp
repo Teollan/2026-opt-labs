@@ -8,20 +8,36 @@
 #include "CharacterAttributes.class.hpp"
 
 struct Token {
-    unsigned int code;
-    unsigned int row;
-    unsigned int column;
+    size_t code;
+    size_t row;
+    size_t column;
+};
+
+struct Error {
+    std::string message;
+    size_t row;
+    size_t column;
 };
 
 class Tokenizer {
 private:
     Source& source;
     SymbolStore& symbols;
-    CharacterAttributes attributes;
+    CharacterAttributes& attributes;
+
+    char character;
+    std::string token;
+    size_t code;
 
     std::vector<Token> _tokens;
-    std::vector<std::string> _errors;
-    std::vector<std::string> _comments;
+    std::vector<Error> _errors;
+
+    void scanWhitespaces();
+    void scanInteger();
+    void scanString();
+    void scanComment();
+    void scanDelimiter();
+    void scanInvalid();
 
 public:
     Tokenizer(Source& source, SymbolStore& symbols, CharacterAttributes& attributes);
@@ -29,12 +45,10 @@ public:
     void scan();
 
     void addToken(const Token& token);
-    void addComment(const std::string& comment);
-    void addError(const std::string& error);
+    void addError(const Error& error);
 
     const std::vector<Token>& tokens() const;
-    const std::vector<std::string>& errors() const;
-    const std::vector<std::string>& comments() const;
+    const std::vector<Error>& errors() const;
 };
 
 #endif

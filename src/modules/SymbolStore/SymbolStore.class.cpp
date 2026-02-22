@@ -21,7 +21,7 @@ SymbolStore::SymbolStore() {
 }
 
 void SymbolStore::declareCharacter(const char character) {
-    symbols.push_back(std::string(1, character));
+    symbols.emplace_back(std::string(1, character));
 }
 
 void SymbolStore::declareKeyword(const std::string& keyword) {

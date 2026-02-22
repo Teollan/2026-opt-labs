@@ -1,175 +1,199 @@
 #include "Tokenizer.class.hpp"
 
+#include <format>
 #include "CharacterAttributes.class.hpp"
 
 Tokenizer::Tokenizer(Source& source, SymbolStore& symbols, CharacterAttributes& attributes) :
     source(source),
     symbols(symbols),
-    attributes(attributes) {}
+    attributes(attributes),
+    character(source.current()) {}
 
 void Tokenizer::scan() {
-    std::string token;
-    unsigned int code;
-    char character = source.current();
-
     while (!source.done()) {
         switch (attributes.lookup(character)) {
             // Automata state: WHITESPACE
             case Attribute::Whitespace:
-                character = source.read();
-
+                scanWhitespaces();
                 break;
 
-            // Automata state: CONSTANT_IN
+            // Automata state: INTEGER_IN
             case Attribute::Digit:
-                while (!source.done() && attributes.lookup(character) == Attribute::Digit) {
-                    token += character;
-                    character = source.read();
-                };
-
-                // Automata state: TOKEN_OUT
-                code = symbols.resolveLiteral(token);
-
-                addToken({
-                    .code = code,
-                    .row = source.row(),
-                    .column = source.column() - static_cast<unsigned int>(token.length()), // Point to first character of the token
-                });
-
-                token.clear();
-
+                scanInteger();
                 break;
 
-            // Automata state: IDENTIFIER_IN
+            // Automata state: STRING_IN
             case Attribute::Letter:
-                do {
-                    token += character;
-                    character = source.read();
-                } while (!source.done() && (attributes.lookup(character) == Attribute::Letter || attributes.lookup(character) == Attribute::Digit));
-
-                // Automata state: TOKEN_OUT
-                if (symbols.isKeyword(token)) {
-                    code = symbols.resolveKeyword(token);
-                } else {
-                    code = symbols.resolveIdentifier(token);
-                }
-
-                addToken({
-                    .code = code,
-                    .row = source.row(),
-                    .column = source.column() - static_cast<unsigned int>(token.length()), // Point to first character of the token
-                });
-
-                token.clear();
-
+                scanString();
                 break;
 
             // Automata state: BEGIN_COMMENT
             case Attribute::Comment:
-                token += character;
-                character = source.read();
-
-                // Automata state: DELIMITER_OUT
-                if (character != '*') {
-                    addToken({
-                        .code = static_cast<unsigned int>(token[0]),
-                        .row = source.row(),
-                        .column = source.column() - 1, // Point to previous character
-                    });
-
-                    token.clear();
-
-                    break;
-                }
-
-                // Automata state: COMMENT_IN
-                while (!source.done()) {
-                    token += character;
-                    character = source.read();
-
-                    // Automata state: ERROR_COMMENT_NOT_CLOSED
-                    if (source.done()) {
-                        addError("Comment not closed: " + token);
-                        token.clear();
-
-                        break;
-                    }
-
-                    // Automata state: COMMENT_END
-                    while (!source.done()) {
-                        token += character;
-                        character = source.read();
-
-                        if (character != '*') {
-                            break;
-                        }
-                    }
-
-                    // Automata state: ERROR_COMMENT_NOT_CLOSED
-                    if (source.done()) {
-                        addError("Comment not closed: " + token);
-                        token.clear();
-
-                        break;
-                    }
-
-                    // Automata state: COMMENT_OUT
-                    if (character == ')') {
-                        token += character;
-                        character = source.read();
-
-                        addComment(token);
-                        token.clear();
-
-                        break;
-                    }
-                };
-
+                scanComment();
                 break;
 
-            // Automata state: DELIMITER_OUT
+            // Automata state: TOKEN_OUT
             case Attribute::Delimiter:
-                addToken({
-                    .code = static_cast<unsigned int>(character),
-                    .row = source.row(),
-                    .column = source.column(),
-                });
-
-                character = source.read();
-
+                scanDelimiter();
                 break;
 
-            // Automata state: ERROR_INVALID_SYMBOL
+            // Automata state: ERROR
             case Attribute::Invalid:
-                addError(std::string("Invalid symbol: ") + character);
-                character = source.read();
-                
+                scanInvalid();
                 break;
         }
     }
 
 }
 
+void Tokenizer::scanWhitespaces() {
+    while (!source.done() && attributes.lookup(character) == Attribute::Whitespace) {
+        character = source.read();
+    }
+}
+
+void Tokenizer::scanInteger() {
+    while (!source.done() && attributes.lookup(character) == Attribute::Digit) {
+        token += character;
+        character = source.read();
+    };
+
+    // Automata state: TOKEN_OUT
+    code = symbols.resolveLiteral(token);
+
+    addToken({
+        .code = code,
+        .row = source.row(),
+        .column = source.column() - token.length(), // Point to first character of the token
+    });
+
+    token.clear();
+}
+
+void Tokenizer::scanString() {
+    while (!source.done() && (attributes.lookup(character) == Attribute::Letter || attributes.lookup(character) == Attribute::Digit)) {
+        token += character;
+        character = source.read();
+    }
+
+    // Automata state: TOKEN_OUT
+    if (symbols.isKeyword(token)) {
+        code = symbols.resolveKeyword(token);
+    } else {
+        code = symbols.resolveIdentifier(token);
+    }
+
+    addToken({
+        .code = code,
+        .row = source.row(),
+        .column = source.column() - token.length(), // Point to first character of the token
+    });
+
+    token.clear();
+}
+
+void Tokenizer::scanComment() {
+    token += character;
+    character = source.read();
+
+    // Automata state: TOKEN_OUT
+    if (character != '*') {
+        addToken({
+            .code = static_cast<size_t>(token[0]),
+            .row = source.row(),
+            .column = source.column() - 1,
+        });
+
+        token.clear();
+
+        return;
+    }
+
+    // Automata state: COMMENT_IN
+    while (!source.done()) {
+        token += character;
+        character = source.read();
+
+        // Automata state: ERROR_COMMENT_NOT_CLOSED
+        if (source.done()) {
+            addError({
+                .message = std::format("Comment not closed: {}", token),
+                .row = source.row(),
+                .column = source.column() - token.length(),
+            });
+
+            token.clear();
+
+            break;
+        }
+
+        // Automata state: COMMENT_END
+        while (!source.done()) {
+            token += character;
+            character = source.read();
+
+            if (character != '*') {
+                break;
+            }
+        }
+
+        // Automata state: ERROR
+        if (source.done()) {
+            addError({
+                .message = std::format("Comment not closed: {}", token),
+                .row = source.row(),
+                .column = source.column() - token.length(),
+            });
+
+            token.clear();
+
+            break;
+        }
+
+        // Automata state: COMMENT_OUT
+        if (character == ')') {
+            token += character;
+            character = source.read();
+
+            token.clear();
+
+            break;
+        }
+    }
+}
+
+void Tokenizer::scanDelimiter() {
+    addToken({
+        .code = static_cast<size_t>(character),
+        .row = source.row(),
+        .column = source.column(),
+    });
+
+    character = source.read();
+}
+
+void Tokenizer::scanInvalid() {
+    addError({
+        .message = std::format("Invalid character: \'{}\'", character),
+        .row = source.row(),
+        .column = source.column(),
+    });
+
+    character = source.read();
+}
+
 const std::vector<Token>& Tokenizer::tokens() const {
     return _tokens;
 }
 
-const std::vector<std::string>& Tokenizer::errors() const {
+const std::vector<Error>& Tokenizer::errors() const {
     return _errors;
-}
-
-const std::vector<std::string>& Tokenizer::comments() const {
-    return _comments;
 }
 
 void Tokenizer::addToken(const Token& token) {
     _tokens.push_back(token);
 }
 
-void Tokenizer::addComment(const std::string& comment) {
-    _comments.push_back(comment);
-}
-
-void Tokenizer::addError(const std::string& error) {
+void Tokenizer::addError(const Error& error) {
     _errors.push_back(error);
 }

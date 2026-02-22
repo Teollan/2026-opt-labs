@@ -21,9 +21,6 @@ CharacterAttributes::CharacterAttributes() {
     for (char ch = 'A'; ch <= 'Z'; ch++) {
         attributes[ch] = Attribute::Letter;
     }
-    for (char ch = 'a'; ch <= 'z'; ch++) {
-        attributes[ch] = Attribute::Letter;
-    }
 
     // Delimiters
     attributes[';'] = Attribute::Delimiter;

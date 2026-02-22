@@ -1,0 +1,10 @@
+PROGRAM CALC;
+CONST
+  (* Initialize constants *)
+  X = '100$EXP(2)';
+  Y = '50,25';
+  (* Another comment
+     spanning multiple lines *)
+  Z = '0';
+BEGIN
+END.

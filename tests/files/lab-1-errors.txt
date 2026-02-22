@@ -1,0 +1,7 @@
+PROGRAM TEST;
+CONST
+  A = '10';
+  B = '20';
+  X & Y;
+BEGIN
+END.

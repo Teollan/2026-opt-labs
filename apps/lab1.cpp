@@ -26,7 +26,7 @@ int main() {
         "CONST\n"
         "  (* This is a comment. *)\n"
         "  X = '10$EXP(20)'#;\n"
-        "  Y = '30,40'\n"
+        "  Y = '30,40';\n"
         "BEGIN\n"
         "END.");
 
@@ -46,12 +46,8 @@ int main() {
                   << " | " << symbols.lookup(token.code) << std::endl;
     }
 
-    for (const auto& comment : tokenizer.comments()) {
-        std::cout << "Comment: " << comment << std::endl;
-    }
-
     for (const auto& error : tokenizer.errors()) {
-        std::cout << "Error: " << error << std::endl;
+        std::cout << "Error: " << error.message << std::endl;
     }
 
     return 0;
