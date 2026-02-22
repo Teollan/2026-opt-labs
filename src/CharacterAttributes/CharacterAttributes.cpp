@@ -9,8 +9,9 @@ CharacterAttributes::CharacterAttributes() {
     attributes[' '] = Attribute::Whitespace;
     attributes['\t'] = Attribute::Whitespace;
     attributes['\n'] = Attribute::Whitespace;
-    attributes['\r'] = Attribute::Whitespace;
     attributes['\v'] = Attribute::Whitespace;
+    attributes['\f'] = Attribute::Whitespace;
+    attributes['\r'] = Attribute::Whitespace;
 
     // Digits
     for (char ch = '0'; ch <= '9'; ch++) {

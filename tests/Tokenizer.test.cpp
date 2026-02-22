@@ -35,15 +35,19 @@ protected:
 TEST_F(TokenizerTest, YieldsNoTokensForEmptySource) {
     StringSource source("");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.tokens().size(), 0);
     EXPECT_EQ(tokenizer.errors().size(), 0);
 }
 
 TEST_F(TokenizerTest, YieldsNoTokensForWhitespaceOnly) {
-    StringSource source(" \t\n\r\v  \n\t ");
+    StringSource source(" \t\n\r\v \f\t\r \n\t ");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.tokens().size(), 0);
     EXPECT_EQ(tokenizer.errors().size(), 0);
 }
@@ -51,7 +55,9 @@ TEST_F(TokenizerTest, YieldsNoTokensForWhitespaceOnly) {
 TEST_F(TokenizerTest, YieldsNoTokensForEmptyComment) {
     StringSource source("(**)");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.tokens().size(), 0);
     EXPECT_EQ(tokenizer.errors().size(), 0);
 }
@@ -59,7 +65,9 @@ TEST_F(TokenizerTest, YieldsNoTokensForEmptyComment) {
 TEST_F(TokenizerTest, YieldsNoTokensForOneLineComment) {
     StringSource source("(* comment *)");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.tokens().size(), 0);
     EXPECT_EQ(tokenizer.errors().size(), 0);
 }
@@ -67,7 +75,9 @@ TEST_F(TokenizerTest, YieldsNoTokensForOneLineComment) {
 TEST_F(TokenizerTest, YieldsNoTokensForMultilineComment) {
     StringSource source("(* l1 \n l2 *)");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.tokens().size(), 0);
     EXPECT_EQ(tokenizer.errors().size(), 0);
 }
@@ -75,19 +85,39 @@ TEST_F(TokenizerTest, YieldsNoTokensForMultilineComment) {
 TEST_F(TokenizerTest, YieldsNoTokensForMultipleComments) {
     StringSource source("(* comment *) (* l1 \n l2 *) \n (* comment *)");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.tokens().size(), 0);
     EXPECT_EQ(tokenizer.errors().size(), 0);
 }
 
-TEST_F(TokenizerTest, YieldsNoTokensForCommentsWithStarsAndParens) {
-    // NOTE: The original spec input "(*(()*())*)" contains "*)" inside the body,
-    // which correctly closes the comment early. Adjusted to avoid accidental closers.
-    // "(*****)" has multiple stars, "(*(((((*))" has parens without *) until the end,
-    // "(*;.:*)" has delimiters inside.
-    StringSource source("(*****) (*(((((*)  (*;.:*)");
+TEST_F(TokenizerTest, YieldsNoTokensForCommentsWithStars) {
+    StringSource source("(*****)");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
+    EXPECT_EQ(tokenizer.tokens().size(), 0);
+    EXPECT_EQ(tokenizer.errors().size(), 0);
+}
+
+TEST_F(TokenizerTest, YieldsNoTokensForCommentsWithDelimiters) {
+    StringSource source("(*;.:*)");
+    Tokenizer tokenizer(source, symbols, attributes);
+
+    tokenizer.scan();
+
+    EXPECT_EQ(tokenizer.tokens().size(), 0);
+    EXPECT_EQ(tokenizer.errors().size(), 0);
+}
+
+TEST_F(TokenizerTest, YieldsNoTokensForCommentWithNestedParensAndStars) {
+    StringSource source("(*(()*())*)");
+    Tokenizer tokenizer(source, symbols, attributes);
+
+    tokenizer.scan();
+
     EXPECT_EQ(tokenizer.tokens().size(), 0);
     EXPECT_EQ(tokenizer.errors().size(), 0);
 }
@@ -95,7 +125,9 @@ TEST_F(TokenizerTest, YieldsNoTokensForCommentsWithStarsAndParens) {
 TEST_F(TokenizerTest, YieldsNoTokensForSpaceOnlyComment) {
     StringSource source("(* *)");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.tokens().size(), 0);
     EXPECT_EQ(tokenizer.errors().size(), 0);
 }
@@ -106,57 +138,65 @@ TEST_F(TokenizerTest, YieldsCorrectTokenForKeyword) {
     // "PROGRAM"
     StringSource source("PROGRAM");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     ASSERT_EQ(tokenizer.tokens().size(), 1);
     EXPECT_EQ(tokenizer.errors().size(), 0);
+
     expectToken(tokenizer, 0, "PROGRAM", SymbolType::Keyword, 0, 0);
 }
 
 TEST_F(TokenizerTest, YieldsCorrectTokenForIdentifier) {
-    // "TEST"
     StringSource source("TEST");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     ASSERT_EQ(tokenizer.tokens().size(), 1);
     EXPECT_EQ(tokenizer.errors().size(), 0);
     expectToken(tokenizer, 0, "TEST", SymbolType::Identifier, 0, 0);
 }
 
 TEST_F(TokenizerTest, YieldsCorrectTokenForSingleLetter) {
-    // "A"
     StringSource source("A");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     ASSERT_EQ(tokenizer.tokens().size(), 1);
     EXPECT_EQ(tokenizer.errors().size(), 0);
     expectToken(tokenizer, 0, "A", SymbolType::Identifier, 0, 0);
 }
 
 TEST_F(TokenizerTest, YieldsCorrectTokenForLiteral) {
-    // "10"
     StringSource source("10");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     ASSERT_EQ(tokenizer.tokens().size(), 1);
     EXPECT_EQ(tokenizer.errors().size(), 0);
     expectToken(tokenizer, 0, "10", SymbolType::Literal, 0, 0);
 }
 
 TEST_F(TokenizerTest, YieldsCorrectTokenForDelimiter) {
-    // ";"
     StringSource source(";");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     ASSERT_EQ(tokenizer.tokens().size(), 1);
     EXPECT_EQ(tokenizer.errors().size(), 0);
     expectToken(tokenizer, 0, ";", SymbolType::Delimiter, 0, 0);
 }
 
 TEST_F(TokenizerTest, YieldsCorrectTokenForOpenParenNotComment) {
-    // "(" — should emit a delimiter token, not start a comment
     StringSource source("(");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     ASSERT_EQ(tokenizer.tokens().size(), 1);
     EXPECT_EQ(tokenizer.errors().size(), 0);
     expectToken(tokenizer, 0, "(", SymbolType::Delimiter, 0, 0);
@@ -165,10 +205,11 @@ TEST_F(TokenizerTest, YieldsCorrectTokenForOpenParenNotComment) {
 // --- Multi-token sequences ---
 
 TEST_F(TokenizerTest, YieldsCorrectTokensForProgramTest) {
-    // "PROGRAM TEST;"
     StringSource source("PROGRAM TEST;");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     ASSERT_EQ(tokenizer.tokens().size(), 3);
     EXPECT_EQ(tokenizer.errors().size(), 0);
     expectToken(tokenizer, 0, "PROGRAM", SymbolType::Keyword, 0, 0);
@@ -177,32 +218,32 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForProgramTest) {
 }
 
 TEST_F(TokenizerTest, YieldsCorrectTokensForConstExpression) {
-    // "X = '10$EXP(20)';"
-    // X=id  ws  ==delim  ws  '=delim  10=lit  $=delim  EXP=kw  (=comment-start but next='2' so delim
-    // 20=lit  )=delim  '=delim  ;=delim
     StringSource source("X = '10$EXP(20)';");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     ASSERT_EQ(tokenizer.tokens().size(), 11);
     EXPECT_EQ(tokenizer.errors().size(), 0);
-    expectToken(tokenizer, 0, "X", SymbolType::Identifier, 0, 0);     // col 0
-    expectToken(tokenizer, 1, "=", SymbolType::Delimiter, 0, 2);      // col 2
-    expectToken(tokenizer, 2, "'", SymbolType::Delimiter, 0, 4);      // col 4
-    expectToken(tokenizer, 3, "10", SymbolType::Literal, 0, 5);       // col 5-6
-    expectToken(tokenizer, 4, "$", SymbolType::Delimiter, 0, 7);      // col 7
-    expectToken(tokenizer, 5, "EXP", SymbolType::Keyword, 0, 8);      // col 8-10
-    expectToken(tokenizer, 6, "(", SymbolType::Delimiter, 0, 11);     // col 11, '(' followed by '2' not '*'
-    expectToken(tokenizer, 7, "20", SymbolType::Literal, 0, 12);      // col 12-13
-    expectToken(tokenizer, 8, ")", SymbolType::Delimiter, 0, 14);     // col 14
-    expectToken(tokenizer, 9, "'", SymbolType::Delimiter, 0, 15);     // col 15
-    expectToken(tokenizer, 10, ";", SymbolType::Delimiter, 0, 16);    // col 16
+    expectToken(tokenizer, 0, "X", SymbolType::Identifier, 0, 0);
+    expectToken(tokenizer, 1, "=", SymbolType::Delimiter, 0, 2);
+    expectToken(tokenizer, 2, "'", SymbolType::Delimiter, 0, 4);
+    expectToken(tokenizer, 3, "10", SymbolType::Literal, 0, 5);
+    expectToken(tokenizer, 4, "$", SymbolType::Delimiter, 0, 7);
+    expectToken(tokenizer, 5, "EXP", SymbolType::Keyword, 0, 8);
+    expectToken(tokenizer, 6, "(", SymbolType::Delimiter, 0, 11);
+    expectToken(tokenizer, 7, "20", SymbolType::Literal, 0, 12);
+    expectToken(tokenizer, 8, ")", SymbolType::Delimiter, 0, 14);
+    expectToken(tokenizer, 9, "'", SymbolType::Delimiter, 0, 15);
+    expectToken(tokenizer, 10, ";", SymbolType::Delimiter, 0, 16);
 }
 
 TEST_F(TokenizerTest, YieldsCorrectTokensForCompactAssignment) {
-    // "Y='3,4';"
     StringSource source("Y='3,4';");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     ASSERT_EQ(tokenizer.tokens().size(), 8);
     EXPECT_EQ(tokenizer.errors().size(), 0);
     expectToken(tokenizer, 0, "Y", SymbolType::Identifier, 0, 0);
@@ -216,10 +257,11 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForCompactAssignment) {
 }
 
 TEST_F(TokenizerTest, YieldsCorrectTokensForBlockWithComment) {
-    // "BEGIN\n(* nothing *)\nEND."
     StringSource source("BEGIN\n(* nothing *)\nEND.");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     ASSERT_EQ(tokenizer.tokens().size(), 3);
     EXPECT_EQ(tokenizer.errors().size(), 0);
     expectToken(tokenizer, 0, "BEGIN", SymbolType::Keyword, 0, 0);
@@ -228,23 +270,18 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForBlockWithComment) {
 }
 
 TEST_F(TokenizerTest, YieldsCorrectTokensForDelimitersOnly) {
-    // "...;;,(()()());;,=,=,,,=;;,."
     StringSource source("...;;,(()()());;,=,=,,,=;;,.");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
-    // All chars are delimiters or comment-start '(' that doesn't see '*'
-    // Count: . . . ; ; , ( ( ) ( ) ( ) ) ; ; , = , = , , , = ; ; , .
-    // That's 28 characters, all tokens
+
     ASSERT_EQ(tokenizer.tokens().size(), 28);
     EXPECT_EQ(tokenizer.errors().size(), 0);
-    // Spot-check first and last
     expectToken(tokenizer, 0, ".", SymbolType::Delimiter, 0, 0);
     expectToken(tokenizer, 27, ".", SymbolType::Delimiter, 0, 27);
 }
 
 TEST_F(TokenizerTest, YieldsCorrectTokensForLab1Example) {
-    // lab1.cpp example with invalid symbols removed:
-    // "PROGRAM TEST;\nCONST\n  (* This is a comment. *)\n  X = '10$EXP(20)';\n  Y = '30,40';\nBEGIN\nEND."
     StringSource source(
         "PROGRAM TEST;\n"
         "CONST\n"
@@ -254,7 +291,9 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForLab1Example) {
         "BEGIN\n"
         "END.");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.errors().size(), 0);
 
     // Row 0: PROGRAM TEST;
@@ -303,10 +342,11 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForLab1Example) {
 // --- Adjacent token boundary ---
 
 TEST_F(TokenizerTest, YieldsCorrectTokensForAdjacentDigitsAndLetters) {
-    // "10X" — should split into literal "10" and identifier "X"
     StringSource source("10X");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     ASSERT_EQ(tokenizer.tokens().size(), 2);
     EXPECT_EQ(tokenizer.errors().size(), 0);
     expectToken(tokenizer, 0, "10", SymbolType::Literal, 0, 0);
@@ -318,7 +358,9 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForAdjacentDigitsAndLetters) {
 TEST_F(TokenizerTest, YieldsCorrectTokenForOpenParenAtEndOfInput) {
     StringSource source("(");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     ASSERT_EQ(tokenizer.tokens().size(), 1);
     EXPECT_EQ(tokenizer.errors().size(), 0);
     expectToken(tokenizer, 0, "(", SymbolType::Delimiter, 0, 0);
@@ -327,20 +369,22 @@ TEST_F(TokenizerTest, YieldsCorrectTokenForOpenParenAtEndOfInput) {
 // --- Error tests ---
 
 TEST_F(TokenizerTest, YieldsErrorForUnknownSymbol) {
-    // "&"
     StringSource source("&");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.tokens().size(), 0);
     ASSERT_EQ(tokenizer.errors().size(), 1);
     expectError(tokenizer, 0, 0, 0);
 }
 
 TEST_F(TokenizerTest, YieldsErrorsForMultipleUnknownSymbols) {
-    // "&^%"
     StringSource source("&^%");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.tokens().size(), 0);
     ASSERT_EQ(tokenizer.errors().size(), 3);
     expectError(tokenizer, 0, 0, 0);
@@ -349,10 +393,11 @@ TEST_F(TokenizerTest, YieldsErrorsForMultipleUnknownSymbols) {
 }
 
 TEST_F(TokenizerTest, YieldsErrorsForUnknownSymbolsWithSpaces) {
-    // "& ^ %"
     StringSource source("& ^ %");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.tokens().size(), 0);
     ASSERT_EQ(tokenizer.errors().size(), 3);
     expectError(tokenizer, 0, 0, 0);
@@ -361,10 +406,11 @@ TEST_F(TokenizerTest, YieldsErrorsForUnknownSymbolsWithSpaces) {
 }
 
 TEST_F(TokenizerTest, YieldsErrorForUnknownSymbolInsideKeyword) {
-    // "BEGI@" — should yield partial identifier "BEGI" then error for '@'
     StringSource source("BEGI@");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     ASSERT_EQ(tokenizer.tokens().size(), 1);
     ASSERT_EQ(tokenizer.errors().size(), 1);
     expectToken(tokenizer, 0, "BEGI", SymbolType::Identifier, 0, 0);
@@ -372,10 +418,11 @@ TEST_F(TokenizerTest, YieldsErrorForUnknownSymbolInsideKeyword) {
 }
 
 TEST_F(TokenizerTest, YieldsErrorsForLowercaseLetters) {
-    // "test" — a-z are not mapped as Letter, should produce 4 invalid character errors
     StringSource source("test");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.tokens().size(), 0);
     ASSERT_EQ(tokenizer.errors().size(), 4);
     expectError(tokenizer, 0, 0, 0);
@@ -385,10 +432,11 @@ TEST_F(TokenizerTest, YieldsErrorsForLowercaseLetters) {
 }
 
 TEST_F(TokenizerTest, YieldsErrorsInterleavedWithValidTokens) {
-    // "PROGRAM & TEST ^ ;"
     StringSource source("PROGRAM & TEST ^ ;");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     ASSERT_EQ(tokenizer.tokens().size(), 3);
     ASSERT_EQ(tokenizer.errors().size(), 2);
     expectToken(tokenizer, 0, "PROGRAM", SymbolType::Keyword, 0, 0);
@@ -401,30 +449,33 @@ TEST_F(TokenizerTest, YieldsErrorsInterleavedWithValidTokens) {
 // --- Unclosed comment errors ---
 
 TEST_F(TokenizerTest, YieldsErrorForUnclosedComment) {
-    // "(* comment"
     StringSource source("(* comment");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.tokens().size(), 0);
     ASSERT_EQ(tokenizer.errors().size(), 1);
     expectError(tokenizer, 0, 0, 0);
 }
 
 TEST_F(TokenizerTest, YieldsErrorForUnclosedCommentWithStar) {
-    // "(* comment *"
     StringSource source("(* comment *");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.tokens().size(), 0);
     ASSERT_EQ(tokenizer.errors().size(), 1);
     expectError(tokenizer, 0, 0, 0);
 }
 
 TEST_F(TokenizerTest, YieldsErrorForMinimalUnclosedComment) {
-    // "(* " — minimal unclosed comment
     StringSource source("(* ");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.tokens().size(), 0);
     ASSERT_EQ(tokenizer.errors().size(), 1);
     expectError(tokenizer, 0, 0, 0);
@@ -433,10 +484,11 @@ TEST_F(TokenizerTest, YieldsErrorForMinimalUnclosedComment) {
 // --- Comment with forbidden characters ---
 
 TEST_F(TokenizerTest, YieldsNoErrorForCommentWithForbiddenCharacters) {
-    // "(* !@#$%^& *)" — forbidden chars inside comment should not produce errors
     StringSource source("(* !@#$%^& *)");
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.tokens().size(), 0);
     EXPECT_EQ(tokenizer.errors().size(), 0);
 }
@@ -450,9 +502,12 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForSimpleProgram) {
         "  A = '5';\n"
         "  B = '10';\n"
         "BEGIN\n"
-        "END.");
+        "END."
+    );
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.errors().size(), 0);
 
     // Row 0: PROGRAM HELLO;
@@ -500,9 +555,12 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForProgramWithCommentsAndExpressions) {
         "  line *)\n"
         "  Z = '0';\n"
         "BEGIN\n"
-        "END.");
+        "END."
+    );
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.errors().size(), 0);
 
     // Row 0: PROGRAM CALC;
@@ -565,9 +623,12 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForProgramWithEdgeCaseComments) {
         "  (**) (* nested (* stars *** *)\n"
         "  A = '1$EXP(0)';\n"
         "BEGIN\n"
-        "END.");
+        "END."
+    );
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     EXPECT_EQ(tokenizer.errors().size(), 0);
 
     // Row 0: PROGRAM EDGE;
@@ -613,12 +674,15 @@ TEST_F(TokenizerTest, YieldsCorrectErrorsInMultilineProgram) {
         "  B = '20';\n"
         "  X & Y;\n"
         "BEGIN\n"
-        "END.");
+        "END."
+    );
     Tokenizer tokenizer(source, symbols, attributes);
+
     tokenizer.scan();
+
     ASSERT_EQ(tokenizer.errors().size(), 1);
     expectError(tokenizer, 0, 4, 4); // '&' at row 4, col 4
 
     // Verify tokens around the error are still correct
-    EXPECT_GT(tokenizer.tokens().size(), 0);
+    EXPECT_EQ(tokenizer.tokens().size(), 22);
 }

@@ -99,7 +99,7 @@ void Tokenizer::scanComment() {
     // Automata state: TOKEN_OUT
     if (character != '*') {
         addToken({
-            .code = static_cast<size_t>(token[0]),
+            .code = static_cast<size_t>(token.front()),
             .row = source.row(),
             .column = source.column() - 1,
         });
@@ -151,7 +151,7 @@ void Tokenizer::scanComment() {
         }
 
         // Automata state: COMMENT_OUT
-        if (character == ')') {
+        if (token.back() == '*' && character == ')') {
             token += character;
             character = source.read();
 

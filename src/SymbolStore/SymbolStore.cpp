@@ -18,7 +18,7 @@ SymbolStore::SymbolStore() {
 }
 
 void SymbolStore::declareDelimiter(const char character) {
-    symbols[character] = std::string(1, character);
+    symbols[static_cast<unsigned char>(character)] = std::string(1, character);
 }
 
 void SymbolStore::declareKeyword(const std::string& keyword) {
