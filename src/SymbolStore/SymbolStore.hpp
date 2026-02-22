@@ -1,5 +1,4 @@
-#ifndef SYMBOL_STORE_CLASS_HPP
-#define SYMBOL_STORE_CLASS_HPP
+#pragma once
 
 #include <unordered_map>
 #include <string>
@@ -35,4 +34,3 @@ public:
     SymbolType lookupType(size_t code) const;
 };
 
-#endif

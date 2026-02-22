@@ -1,6 +1,0 @@
-PROGRAM EDGE;
-CONST
-  (**) (* nested (* stars *** *)
-  A = '1$EXP(0)';
-BEGIN
-END.

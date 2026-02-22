@@ -1,5 +1,4 @@
-#ifndef CHARACTER_ATTRIBUTES_CLASS_HPP
-#define CHARACTER_ATTRIBUTES_CLASS_HPP
+#pragma once
 
 #include <array>
 
@@ -22,4 +21,3 @@ public:
     Attribute lookup(char character) const;
 };
 
-#endif

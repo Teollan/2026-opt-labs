@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <SymbolStore.class.hpp>
+#include <SymbolStore.hpp>
 
 class SymbolStoreTest : public ::testing::Test {};
 

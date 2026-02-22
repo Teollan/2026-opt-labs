@@ -1,5 +1,4 @@
-#ifndef SOURCE_CLASS_HPP
-#define SOURCE_CLASS_HPP
+#pragma once
 
 class Source {
 private:
@@ -20,4 +19,3 @@ public:
     unsigned int column() const;
 };
 
-#endif

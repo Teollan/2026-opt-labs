@@ -1,6 +1,6 @@
-#include <StringSource.class.hpp>
-#include <SymbolStore.class.hpp>
-#include <Tokenizer.class.hpp>
+#include <StringSource.hpp>
+#include <SymbolStore.hpp>
+#include <Tokenizer.hpp>
 #include <format>
 #include <iostream>
 #include <string>

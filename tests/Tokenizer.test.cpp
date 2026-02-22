@@ -1,10 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <StringSource.class.hpp>
-#include <FileSource.class.hpp>
-#include <SymbolStore.class.hpp>
-#include <Tokenizer.class.hpp>
-#include <CharacterAttributes.class.hpp>
+#include <StringSource.hpp>
+#include <SymbolStore.hpp>
+#include <Tokenizer.hpp>
+#include <CharacterAttributes.hpp>
 
 class TokenizerTest : public ::testing::Test {
 protected:
@@ -442,11 +441,16 @@ TEST_F(TokenizerTest, YieldsNoErrorForCommentWithForbiddenCharacters) {
     EXPECT_EQ(tokenizer.errors().size(), 0);
 }
 
-// --- File-based tests ---
+// --- Multi-line program tests ---
 
-TEST_F(TokenizerTest, YieldsCorrectTokensForFile1) {
-    // PROGRAM HELLO;\nCONST\n  A = '5';\n  B = '10';\nBEGIN\nEND.
-    FileSource source(std::string(TEST_FILES_DIR) + "/lab-1-1.txt");
+TEST_F(TokenizerTest, YieldsCorrectTokensForSimpleProgram) {
+    StringSource source(
+        "PROGRAM HELLO;\n"
+        "CONST\n"
+        "  A = '5';\n"
+        "  B = '10';\n"
+        "BEGIN\n"
+        "END.");
     Tokenizer tokenizer(source, symbols, attributes);
     tokenizer.scan();
     EXPECT_EQ(tokenizer.errors().size(), 0);
@@ -485,9 +489,18 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForFile1) {
     EXPECT_EQ(tokenizer.tokens().size(), 19);
 }
 
-TEST_F(TokenizerTest, YieldsCorrectTokensForFile2) {
-    // PROGRAM CALC;\nCONST\n  (* Initialize constants *)\n  X = '100$EXP(2)';\n  Y = '50,25';\n  (* multi\n  line *)\n  Z = '0';\nBEGIN\nEND.
-    FileSource source(std::string(TEST_FILES_DIR) + "/lab-1-2.txt");
+TEST_F(TokenizerTest, YieldsCorrectTokensForProgramWithCommentsAndExpressions) {
+    StringSource source(
+        "PROGRAM CALC;\n"
+        "CONST\n"
+        "  (* Initialize constants *)\n"
+        "  X = '100$EXP(2)';\n"
+        "  Y = '50,25';\n"
+        "  (* multi\n"
+        "  line *)\n"
+        "  Z = '0';\n"
+        "BEGIN\n"
+        "END.");
     Tokenizer tokenizer(source, symbols, attributes);
     tokenizer.scan();
     EXPECT_EQ(tokenizer.errors().size(), 0);
@@ -545,9 +558,14 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForFile2) {
     EXPECT_EQ(tokenizer.tokens().size(), 32);
 }
 
-TEST_F(TokenizerTest, YieldsCorrectTokensForFile3) {
-    // PROGRAM EDGE;\nCONST\n  (**) (* nested (* stars *** *)\n  A = '1$EXP(0)';\nBEGIN\nEND.
-    FileSource source(std::string(TEST_FILES_DIR) + "/lab-1-3.txt");
+TEST_F(TokenizerTest, YieldsCorrectTokensForProgramWithEdgeCaseComments) {
+    StringSource source(
+        "PROGRAM EDGE;\n"
+        "CONST\n"
+        "  (**) (* nested (* stars *** *)\n"
+        "  A = '1$EXP(0)';\n"
+        "BEGIN\n"
+        "END.");
     Tokenizer tokenizer(source, symbols, attributes);
     tokenizer.scan();
     EXPECT_EQ(tokenizer.errors().size(), 0);
@@ -585,11 +603,17 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForFile3) {
     EXPECT_EQ(tokenizer.tokens().size(), 18);
 }
 
-// --- File-based error test ---
+// --- Multi-line error test ---
 
-TEST_F(TokenizerTest, YieldsCorrectErrorsInLongFile) {
-    // PROGRAM TEST;\nCONST\n  A = '10';\n  B = '20';\n  X & Y;\nBEGIN\nEND.
-    FileSource source(std::string(TEST_FILES_DIR) + "/lab-1-errors.txt");
+TEST_F(TokenizerTest, YieldsCorrectErrorsInMultilineProgram) {
+    StringSource source(
+        "PROGRAM TEST;\n"
+        "CONST\n"
+        "  A = '10';\n"
+        "  B = '20';\n"
+        "  X & Y;\n"
+        "BEGIN\n"
+        "END.");
     Tokenizer tokenizer(source, symbols, attributes);
     tokenizer.scan();
     ASSERT_EQ(tokenizer.errors().size(), 1);

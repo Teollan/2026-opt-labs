@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <StringSource.class.hpp>
+#include <StringSource.hpp>
 
 class StringSourceTest : public ::testing::Test {};
 

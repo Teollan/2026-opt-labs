@@ -1,4 +1,4 @@
-#include "Source.class.hpp"
+#include "Source.hpp"
 
 void Source::advance(char character) {
     if (character == '\n') {

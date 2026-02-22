@@ -1,4 +1,4 @@
-#include "CharacterAttributes.class.hpp"
+#include "CharacterAttributes.hpp"
 
 CharacterAttributes::CharacterAttributes() {
     for (int i = 0; i < 256; i++) {

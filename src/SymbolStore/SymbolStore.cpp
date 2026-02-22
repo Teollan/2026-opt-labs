@@ -1,4 +1,4 @@
-#include "SymbolStore.class.hpp"
+#include "SymbolStore.hpp"
 
 #include <format>
 #include <stdexcept>

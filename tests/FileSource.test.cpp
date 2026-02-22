@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <unistd.h>
 
-#include <FileSource.class.hpp>
+#include <FileSource.hpp>
 
 class FileSourceTest : public ::testing::Test {
 protected:

@@ -1,4 +1,4 @@
-#include "FileSource.class.hpp"
+#include "FileSource.hpp"
 
 FileSource::FileSource(const std::string& filePath) : 
     file(filePath),

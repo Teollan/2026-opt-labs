@@ -1,4 +1,4 @@
-#include "StringSource.class.hpp"
+#include "StringSource.hpp"
 
 StringSource::StringSource(std::string source) :
     source(std::move(source)),

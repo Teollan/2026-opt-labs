@@ -1,9 +1,8 @@
-#ifndef FILE_SOURCE_CLASS_HPP
-#define FILE_SOURCE_CLASS_HPP
+#pragma once
 
 #include <string>
 #include <fstream>
-#include "Source.class.hpp"
+#include "Source.hpp"
 
 class FileSource : public Source {
 private:
@@ -18,4 +17,3 @@ public:
     bool done() override;
 };
 
-#endif

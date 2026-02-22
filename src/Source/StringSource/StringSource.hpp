@@ -1,8 +1,7 @@
-#ifndef STRING_SOURCE_CLASS_HPP
-#define STRING_SOURCE_CLASS_HPP
+#pragma once
 
 #include <string>
-#include "Source.class.hpp"
+#include "Source.hpp"
 
 class StringSource : public Source {
 private:
@@ -17,4 +16,3 @@ public:
     bool done() override;
 };
 
-#endif

@@ -1,7 +1,7 @@
-#include "Tokenizer.class.hpp"
+#include "Tokenizer.hpp"
 
 #include <format>
-#include "CharacterAttributes.class.hpp"
+#include "CharacterAttributes.hpp"
 
 Tokenizer::Tokenizer(Source& source, SymbolStore& symbols, CharacterAttributes& attributes) :
     source(source),

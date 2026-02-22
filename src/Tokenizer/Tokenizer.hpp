@@ -1,11 +1,10 @@
-#ifndef Tokenizer_class_HPP
-#define Tokenizer_class_HPP
+#pragma once
 
 #include <vector>
 #include <unordered_map>
-#include "Source.class.hpp"
-#include "SymbolStore.class.hpp"
-#include "CharacterAttributes.class.hpp"
+#include "Source.hpp"
+#include "SymbolStore.hpp"
+#include "CharacterAttributes.hpp"
 
 struct Token {
     size_t code;
@@ -51,4 +50,3 @@ public:
     const std::vector<Error>& errors() const;
 };
 
-#endif
