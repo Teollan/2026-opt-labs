@@ -1,18 +1,13 @@
 #include "Source.hpp"
 
-void Source::advance(char character) {
-    if (character == '\n') {
-        _row++;
-        _column = 0;
-    } else {
-        _column++;
-    }
-}
+Source::Source() = default;
+
+Source::Source(SourcePosition position) : position(position) {}
 
 unsigned int Source::row() const {
-    return _row;
+    return position.row();
 }
 
 unsigned int Source::column() const {
-    return _column;
+    return position.column();
 }

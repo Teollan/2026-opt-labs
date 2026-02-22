@@ -28,9 +28,9 @@ public:
     size_t resolveIdentifier(const std::string& identifier);
     size_t resolveLiteral(const std::string& literal);
 
-    bool isKeyword(const std::string& token) const;
+    [[nodiscard]] bool isKeyword(const std::string& token) const;
 
-    const std::string& lookup(size_t code) const;
-    SymbolType lookupType(size_t code) const;
+    [[nodiscard]] const std::string& lookup(size_t code) const;
+    [[nodiscard]] SymbolType lookupType(size_t code) const;
 };
 

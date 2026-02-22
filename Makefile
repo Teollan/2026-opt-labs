@@ -1,4 +1,4 @@
-.PHONY: build test run lint format clean
+.PHONY: build test run lint format clean module
 
 build:
 	cmake -B build -DCMAKE_BUILD_TYPE=Debug
@@ -21,3 +21,15 @@ lint:
 
 clean:
 	rm -rf build
+
+module:
+ifndef NAME
+	$(error Usage: make module NAME=MyModule)
+endif
+	@mkdir -p src/$(NAME)
+	@printf '#pragma once\n\nclass $(NAME) {\nprivate:\n\npublic:\n    $(NAME)();\n};\n' > src/$(NAME)/$(NAME).hpp
+	@printf '#include "$(NAME).hpp"\n\n$(NAME)::$(NAME)() {}\n' > src/$(NAME)/$(NAME).cpp
+	@printf '#include <gtest/gtest.h>\n\n#include <$(NAME).hpp>\n\nclass $(NAME)Test : public ::testing::Test {\nprotected:\n};\n' > tests/$(NAME).test.cpp
+	@echo "Created src/$(NAME)/$(NAME).hpp"
+	@echo "Created src/$(NAME)/$(NAME).cpp"
+	@echo "Created tests/$(NAME).test.cpp"

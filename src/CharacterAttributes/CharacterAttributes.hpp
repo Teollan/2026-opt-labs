@@ -18,6 +18,6 @@ private:
 public:
     CharacterAttributes();
 
-    Attribute lookup(char character) const;
+    [[nodiscard]] Attribute lookup(char character) const;
 };
 

@@ -1,21 +1,22 @@
 #pragma once
 
-class Source {
-private:
-    unsigned int _row = 0;
-    unsigned int _column = 0;
+#include <SourcePosition.hpp>
 
+class Source {
 protected:
-    void advance(char character);
+    SourcePosition position;
 
 public:
+    Source();
+    Source(SourcePosition position);
+
     virtual ~Source() = default;
 
     virtual char current() = 0;
     virtual char read() = 0;
     virtual bool done() = 0;
 
-    unsigned int row() const;
-    unsigned int column() const;
+    [[nodiscard]] unsigned int row() const;
+    [[nodiscard]] unsigned int column() const;
 };
 

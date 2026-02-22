@@ -46,7 +46,7 @@ public:
     void addToken(const Token& token);
     void addError(const Error& error);
 
-    const std::vector<Token>& tokens() const;
-    const std::vector<Error>& errors() const;
+    [[nodiscard]] const std::vector<Token>& tokens() const;
+    [[nodiscard]] const std::vector<Error>& errors() const;
 };
 
