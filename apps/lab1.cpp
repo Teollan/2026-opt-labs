@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
     view.print(tokenizer.tokens(), symbols);
 
     for (const auto& error : tokenizer.errors()) {
-        std::cout << std::format("Error [{}:{}]: {}", error.row + 1, error.column + 1, error.message) << std::endl;
+        std::cout << std::format("Tokenizer | Error [{}:{}]: {}", error.row + 1, error.column + 1, error.message) << std::endl;
     }
 
     return 0;

@@ -150,7 +150,7 @@ void Tokenizer::scanDelimiter() {
 
 void Tokenizer::scanInvalid() {
     addError({
-        .message = std::format("Invalid character: \'{}\'", character),
+        .message = std::format("Invalid character \'{}\'", character),
         .row = source.row(),
         .column = source.column(),
     });
