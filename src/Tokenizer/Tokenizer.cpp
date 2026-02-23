@@ -93,73 +93,47 @@ void Tokenizer::scanString() {
 }
 
 void Tokenizer::scanComment() {
-    token += character;
+    size_t startRow = source.row();
+    size_t startCol = source.column();
+
     character = source.read();
 
     // Automata state: TOKEN_OUT
     if (character != '*') {
         addToken({
-            .code = static_cast<size_t>(token.front()),
-            .row = source.row(),
-            .column = source.column() - 1,
+            .code = static_cast<size_t>('('),
+            .row = startRow,
+            .column = startCol,
         });
-
-        token.clear();
 
         return;
     }
 
+    character = source.read();
+
     // Automata state: COMMENT_IN
     while (!source.done()) {
-        token += character;
-        character = source.read();
-
-        // Automata state: ERROR_COMMENT_NOT_CLOSED
-        if (source.done()) {
-            addError({
-                .message = std::format("Comment not closed: {}", token),
-                .row = source.row(),
-                .column = source.column() - token.length(),
-            });
-
-            token.clear();
-
-            break;
-        }
-
-        // Automata state: COMMENT_END
-        while (!source.done()) {
-            token += character;
+        // Automata state: COMMENT_CLOSE
+        if (character == '*') {
             character = source.read();
 
-            if (character != '*') {
-                break;
+            // Automata state: COMMENT_END
+            if (character == ')') {
+                character = source.read();
+
+                return;
             }
-        }
-
-        // Automata state: ERROR
-        if (source.done()) {
-            addError({
-                .message = std::format("Comment not closed: {}", token),
-                .row = source.row(),
-                .column = source.column() - token.length(),
-            });
-
-            token.clear();
-
-            break;
-        }
-
-        // Automata state: COMMENT_OUT
-        if (token.back() == '*' && character == ')') {
-            token += character;
+        } else {
             character = source.read();
-
-            token.clear();
-
-            break;
         }
     }
+
+    // Automata state: ERROR
+    addError({
+        .message = "Comment not closed",
+        .row = startRow,
+        .column = startCol,
+    });
 }
 
 void Tokenizer::scanDelimiter() {

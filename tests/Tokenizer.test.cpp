@@ -471,7 +471,7 @@ TEST_F(TokenizerTest, YieldsErrorForUnclosedCommentWithStar) {
 }
 
 TEST_F(TokenizerTest, YieldsErrorForMinimalUnclosedComment) {
-    StringSource source("(* ");
+    StringSource source("(*");
     Tokenizer tokenizer(source, symbols, attributes);
 
     tokenizer.scan();
