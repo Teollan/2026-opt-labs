@@ -8,7 +8,10 @@ test: build
 	ctest --test-dir build --output-on-failure
 
 run: build
-	./build/apps/lab1
+ifndef FILE
+	$(error Usage: make run FILE=<filename>)
+endif
+	./build/apps/lab1 examples/$(FILE).signal
 
 LLVM_BIN := $(shell brew --prefix llvm 2>/dev/null)/bin
 

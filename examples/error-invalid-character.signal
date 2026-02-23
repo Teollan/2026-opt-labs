@@ -1,0 +1,7 @@
+(* Encountered invalid character(s) *)
+PROGRAM INVCHARS;
+CONST
+  A = '1,%'; (* 1 error: % is invalid *)
+  b#& = '30$EXP(40)'; (* 3 errors: b, #, & are invalid *)
+BEGIn (* 1 error: grammar is case-sensitive! *)
+END.

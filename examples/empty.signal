@@ -1,0 +1,4 @@
+(* Empty program *)
+PROGRAM EMPTY;
+BEGIN
+END.

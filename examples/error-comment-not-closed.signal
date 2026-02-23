@@ -1,0 +1,5 @@
+(* Check comment not closed error *)
+PROGRAM NOCLOSE;
+BEGIN
+END.
+(* No closing bracket!

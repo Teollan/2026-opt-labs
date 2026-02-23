@@ -1,0 +1,13 @@
+(* A lot of comments *)
+PROGRAM COMMENTS;
+CONST
+  (* Single-line comment *)
+  (*
+    Multi-line comment
+  *)
+  (**) (*  *)
+  (* Multiple *) (* comments *) (* on *) (* the *) (* same *) (* line *)
+  (*****) (*(()*())*) (*;.:*) (* Comments with nested * and () *)
+  (* Invalid symbols are allowed! %#^@& *)
+BEGIN (* on the same like as identifier *)
+END (* between tokens *) .

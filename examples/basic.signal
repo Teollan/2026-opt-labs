@@ -1,0 +1,16 @@
+(* Basic happy path in given grammar *)
+PROGRAM BASIC;
+CONST
+  (* Single-line comment *)
+  X = '';
+  A = '1';
+  B = '2,3';
+  C = ',4';
+  D = '5$EXP(6)';
+  E = '$EXP(7)';
+  F1G = '1'; (* Digit in identifier *)
+BEGIN
+  (*
+    Multi-line comment
+  *)
+END.
