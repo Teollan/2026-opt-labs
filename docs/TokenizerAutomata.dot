@@ -1,0 +1,42 @@
+strict digraph {
+  node [fontname="Courier New", fontsize=10];
+  edge [fontname="Courier New", fontsize=10];
+
+  START -> LOOP [label="read first character"];
+
+  LOOP -> WHITESPACE [label="whitespace"];
+  WHITESPACE -> WHITESPACE [label="whitespace"];
+  WHITESPACE -> LOOP [label="other"];
+
+  LOOP -> INTEGER [label="digit"];
+  INTEGER -> INTEGER [label="digit"];
+  INTEGER -> WRITE [label="other"];
+  WRITE -> LOOP;
+
+  LOOP -> STRING [label="letter"];
+  STRING -> STRING [label="digit or letter"];
+  STRING -> WRITE [label="other"];
+  WRITE -> LOOP
+
+  LOOP -> COMMENT_START [label="("];
+  COMMENT_START -> COMMENT [label="*"];
+  COMMENT_START -> WRITE [label="other"];
+  COMMENT -> COMMENT_CLOSE [label="*"];
+  COMMENT -> ERROR_COMMENT_NOT_CLOSED [label="eof"];
+  COMMENT -> COMMENT [label="other"];
+  COMMENT_CLOSE -> COMMENT_END [label=")"];
+  COMMENT_CLOSE -> COMMENT_CLOSE [label="*"];
+  COMMENT_CLOSE -> ERROR_COMMENT_NOT_CLOSED [label="eof"];
+  COMMENT_CLOSE -> COMMENT [label="other"];
+  COMMENT_END -> LOOP;
+  ERROR_COMMENT_NOT_CLOSED -> END;
+
+  LOOP -> DELIMITER [label="delimiter"];
+  DELIMITER -> WRITE [label="other"];
+  WRITE -> LOOP;
+
+  LOOP -> ERROR_INVALID_CHARACTER [label="other"];
+  ERROR_INVALID_CHARACTER -> LOOP;
+
+  LOOP -> END [label="eof"];
+}
