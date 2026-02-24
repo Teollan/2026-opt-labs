@@ -1,16 +1,5 @@
-(* Basic happy path in given grammar *)
-PROGRAM BASIC;
+PROGRAM HELLO;
 CONST
-  (* Single-line comment *)
-  X = '';
-  A = '1';
-  B = '2,3';
-  C = ',4';
-  D = '5$EXP(6)';
-  E = '$EXP(7)';
-  F1G = '1'; (* Digit in identifier *)
+  X = '42';
 BEGIN
-  (*
-    Multi-line comment
-  *)
 END.

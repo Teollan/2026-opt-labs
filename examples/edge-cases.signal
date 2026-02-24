@@ -1,0 +1,9 @@
+(* Edge cases within the grammar *)
+PROGRAM EDGES;
+CONST
+  AB12CD = '999,000';
+  Z = '100$EXP(200)';
+  LONGNAME123 = '0';
+  A = '0,0';
+BEGIN
+END.

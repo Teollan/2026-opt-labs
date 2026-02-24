@@ -1,4 +1,4 @@
-.PHONY: build test run lint format clean module
+.PHONY: build test run lint format clean module pdf
 
 build:
 	cmake -B build -DCMAKE_BUILD_TYPE=Debug
@@ -24,6 +24,12 @@ lint:
 
 clean:
 	rm -rf build
+
+pdf: build
+	@test -d .venv || python3 -m venv .venv
+	@.venv/bin/pip install -q pygments weasyprint
+	@.venv/bin/python scripts/sources-to-pdf.py docs/sources.pdf
+	@.venv/bin/python scripts/tests-to-pdf.py docs/tests.pdf
 
 module:
 ifndef NAME

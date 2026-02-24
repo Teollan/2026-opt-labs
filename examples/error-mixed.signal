@@ -1,0 +1,9 @@
+(* Multiple error types in one file *)
+PROGRAM MIXED;
+CONST
+  A = '1';
+  bad = '2'; (* lowercase: 3 errors *)
+  C = '3~4'; (* invalid ~: 1 error *)
+BEGIN
+END.
+(* unclosed comment
