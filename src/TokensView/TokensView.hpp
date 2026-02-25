@@ -15,5 +15,8 @@ private:
 public:
     TokensView(std::ostream& out);
 
-    void print(const std::vector<Token>& tokens, const SymbolStore& symbols) const;
+    void print(
+        const std::vector<Token>& tokens,
+        const SymbolStore& symbols
+    ) const;
 };

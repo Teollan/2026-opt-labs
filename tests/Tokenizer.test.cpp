@@ -18,16 +18,25 @@ protected:
         size_t row,
         size_t col
     ) {
-        ASSERT_LT(index, tokenizer.tokens().size()) << "Token index " << index << " out of range";
+        ASSERT_LT(index, tokenizer.tokens().size())
+            << "Token index " << index << " out of range";
         const auto& token = tokenizer.tokens()[index];
-        EXPECT_EQ(symbols.lookup(token.code), value) << "Token " << index << " value mismatch";
-        EXPECT_EQ(symbols.lookupType(token.code), type) << "Token " << index << " type mismatch";
+        EXPECT_EQ(symbols.lookup(token.code), value)
+            << "Token " << index << " value mismatch";
+        EXPECT_EQ(symbols.lookupType(token.code), type)
+            << "Token " << index << " type mismatch";
         EXPECT_EQ(token.row, row) << "Token " << index << " row mismatch";
         EXPECT_EQ(token.column, col) << "Token " << index << " col mismatch";
     }
 
-    void expectError(const Tokenizer& tokenizer, size_t index, size_t row, size_t col) {
-        ASSERT_LT(index, tokenizer.errors().size()) << "Error index " << index << " out of range";
+    void expectError(
+        const Tokenizer& tokenizer,
+        size_t index,
+        size_t row,
+        size_t col
+    ) {
+        ASSERT_LT(index, tokenizer.errors().size())
+            << "Error index " << index << " out of range";
         const auto& error = tokenizer.errors()[index];
         EXPECT_EQ(error.row, row) << "Error " << index << " row mismatch";
         EXPECT_EQ(error.column, col) << "Error " << index << " col mismatch";

@@ -61,7 +61,9 @@ std::string Table<T>::row(const T& item) const {
 
     for (const auto& column : columns) {
         std::string value = column.extractor(item);
-        result += " " + std::vformat(column.format, std::make_format_args(value)) + " |";
+        result += " " +
+                  std::vformat(column.format, std::make_format_args(value)) +
+                  " |";
     }
 
     return result;

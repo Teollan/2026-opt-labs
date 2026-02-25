@@ -17,11 +17,16 @@ std::string TokensView::typeLabel(SymbolType type) {
     }
 }
 
-void TokensView::print(const std::vector<Token>& tokens, const SymbolStore& symbols) const {
+void TokensView::print(
+    const std::vector<Token>& tokens,
+    const SymbolStore& symbols
+) const {
     std::string border = "+-------+-----+-----+------------+---------+";
 
-    std::string header =
-        std::format("| {:>5} | {:>3} | {:>3} | {:<10} | {:<7} |", "Code", "Row", "Col", "Type", "Value");
+    std::string header = std::format(
+        "| {:>5} | {:>3} | {:>3} | {:<10} | {:<7} |", "Code", "Row", "Col",
+        "Type", "Value"
+    );
 
     out << border << "\n";
     out << header << "\n";
@@ -32,8 +37,8 @@ void TokensView::print(const std::vector<Token>& tokens, const SymbolStore& symb
         auto type = typeLabel(symbols.lookupType(token.code));
 
         out << std::format(
-                   "| {:>5} | {:>3} | {:>3} | {:<10} | {:<7} |", token.code, token.row + 1, token.column + 1, type,
-                   value
+                   "| {:>5} | {:>3} | {:>3} | {:<10} | {:<7} |", token.code,
+                   token.row + 1, token.column + 1, type, value
                )
             << "\n";
     }

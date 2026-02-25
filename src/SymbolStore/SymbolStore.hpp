@@ -40,6 +40,7 @@ public:
     [[nodiscard]] bool isKeyword(const std::string& token) const;
     [[nodiscard]] const std::string& lookup(size_t code) const;
     [[nodiscard]] SymbolType lookupType(size_t code) const;
-    [[nodiscard]] std::vector<std::pair<std::string, size_t>> identifiers() const;
+    [[nodiscard]] std::vector<std::pair<std::string, size_t>>
+    identifiers() const;
     [[nodiscard]] std::vector<std::pair<std::string, size_t>> literals() const;
 };

@@ -31,27 +31,56 @@ int main(int argc, char* argv[]) {
     tokenizer.scan();
 
     Table("\nTokens", tokenizer.tokens())
-        .addColumn("Code", "{:>5}", [](const auto& t) { return std::to_string(t.code); })
-        .addColumn("Row", "{:>3}", [](const auto& t) { return std::to_string(t.row + 1); })
-        .addColumn("Col", "{:>3}", [](const auto& t) { return std::to_string(t.column + 1); })
-        .addColumn("Type", "{:<10}", [&](const auto& t) { return getTypeLabel(symbols.lookupType(t.code)); })
-        .addColumn("Value", "{:<30}", [&](const auto& t) { return std::string(symbols.lookup(t.code)); })
+        .addColumn(
+            "Code", "{:>5}",
+            [](const auto& t) { return std::to_string(t.code); }
+        )
+        .addColumn(
+            "Row", "{:>3}",
+            [](const auto& t) { return std::to_string(t.row + 1); }
+        )
+        .addColumn(
+            "Col", "{:>3}",
+            [](const auto& t) { return std::to_string(t.column + 1); }
+        )
+        .addColumn(
+            "Type", "{:<10}",
+            [&](const auto& t) {
+                return getTypeLabel(symbols.lookupType(t.code));
+            }
+        )
+        .addColumn(
+            "Value", "{:<30}",
+            [&](const auto& t) { return std::string(symbols.lookup(t.code)); }
+        )
         .print();
 
     Log("Tokenizer", tokenizer.errors())
         .setFormatter([](const auto& err) {
-            return std::format("Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message);
+            return std::format(
+                "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
+            );
         })
         .print();
 
     Table("\nIdentifiers", symbols.identifiers())
-        .addColumn("Code", "{:>5}", [](const auto& pair) { return std::to_string(pair.second); })
-        .addColumn("Value", "{:<30}", [](const auto& pair) { return pair.first; })
+        .addColumn(
+            "Code", "{:>5}",
+            [](const auto& pair) { return std::to_string(pair.second); }
+        )
+        .addColumn(
+            "Value", "{:<30}", [](const auto& pair) { return pair.first; }
+        )
         .print();
 
     Table("\nLiterals", symbols.literals())
-        .addColumn("Code", "{:>5}", [](const auto& pair) { return std::to_string(pair.second); })
-        .addColumn("Value", "{:<30}", [](const auto& pair) { return pair.first; })
+        .addColumn(
+            "Code", "{:>5}",
+            [](const auto& pair) { return std::to_string(pair.second); }
+        )
+        .addColumn(
+            "Value", "{:<30}", [](const auto& pair) { return pair.first; }
+        )
         .print();
 
     return 0;

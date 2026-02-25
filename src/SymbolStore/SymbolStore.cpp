@@ -24,7 +24,9 @@ void SymbolStore::declareDelimiter(const char character) {
 
 void SymbolStore::declareKeyword(const std::string& keyword) {
     if (_keywords.contains(keyword)) {
-        throw std::invalid_argument(std::format("Keyword \'{}\' is already declared", keyword));
+        throw std::invalid_argument(
+            std::format("Keyword \'{}\' is already declared", keyword)
+        );
     }
 
     size_t code = KEYWORDS_OFFSET + _keywords.size();
@@ -39,7 +41,9 @@ void SymbolStore::declareKeyword(const std::string& keyword) {
 
 size_t SymbolStore::resolveKeyword(const std::string& keyword) {
     if (!_keywords.contains(keyword)) {
-        throw std::invalid_argument(std::format("\'{}\' is not a keyword", keyword));
+        throw std::invalid_argument(
+            std::format("\'{}\' is not a keyword", keyword)
+        );
     }
 
     return _keywords[keyword];
@@ -96,12 +100,16 @@ SymbolType SymbolStore::lookupType(size_t code) const {
         return SymbolType::Identifier;
     }
 
-    throw std::out_of_range(std::format("Symbol code {} is out of range", code));
+    throw std::out_of_range(
+        std::format("Symbol code {} is out of range", code)
+    );
 }
 
 const std::string& SymbolStore::lookup(size_t code) const {
     if (code >= symbols.size()) {
-        throw std::out_of_range(std::format("Symbol code {} is out of range", code));
+        throw std::out_of_range(
+            std::format("Symbol code {} is out of range", code)
+        );
     }
 
     return symbols[code];
@@ -114,7 +122,9 @@ std::vector<std::pair<std::string, size_t>> SymbolStore::identifiers() const {
         result.emplace_back(pair.first, pair.second);
     }
 
-    std::sort(result.begin(), result.end(), [](const auto& a, const auto& b) { return a.second < b.second; });
+    std::sort(result.begin(), result.end(), [](const auto& a, const auto& b) {
+        return a.second < b.second;
+    });
 
     return result;
 }
@@ -126,7 +136,9 @@ std::vector<std::pair<std::string, size_t>> SymbolStore::literals() const {
         result.emplace_back(pair.first, pair.second);
     }
 
-    std::sort(result.begin(), result.end(), [](const auto& a, const auto& b) { return a.second < b.second; });
+    std::sort(result.begin(), result.end(), [](const auto& a, const auto& b) {
+        return a.second < b.second;
+    });
 
     return result;
 }

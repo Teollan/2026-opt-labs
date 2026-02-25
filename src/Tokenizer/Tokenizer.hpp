@@ -40,7 +40,11 @@ private:
     void scanInvalid();
 
 public:
-    Tokenizer(Source& source, SymbolStore& symbols, CharacterAttributes& attributes);
+    Tokenizer(
+        Source& source,
+        SymbolStore& symbols,
+        CharacterAttributes& attributes
+    );
 
     void scan();
 
