@@ -21,16 +21,13 @@ std::string getTypeLabel(SymbolType type) {
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         std::cerr << "Usage: lab1 <filename>" << std::endl;
-
         return 1;
     }
 
     FileSource source(argv[1]);
-
     SymbolStore symbols;
     CharacterAttributes attributes;
     Tokenizer tokenizer(source, symbols, attributes);
-
     tokenizer.scan();
 
     Table("\nTokens", tokenizer.tokens())
