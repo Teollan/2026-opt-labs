@@ -65,11 +65,11 @@ TEST_F(StringSourceTest, TracksColumn) {
 TEST_F(StringSourceTest, TracksRow) {
     StringSource source("A\nB\nC");
     EXPECT_EQ(source.row(), 0);
-    source.read(); // '\n'
-    source.read(); // 'B'
+    source.read();  // '\n'
+    source.read();  // 'B'
     EXPECT_EQ(source.row(), 1);
-    source.read(); // '\n'
-    source.read(); // 'C'
+    source.read();  // '\n'
+    source.read();  // 'C'
     EXPECT_EQ(source.row(), 2);
 }
 

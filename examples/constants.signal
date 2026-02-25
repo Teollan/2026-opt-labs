@@ -2,12 +2,12 @@
 PROGRAM CONSTANTS;
 CONST
   (* Single-line comment *)
-  X = '';
+  A = '';
   A = '1';
-  B = '2,3';
-  C = ',4';
-  D = '5$EXP(6)';
-  E = '$EXP(7)';
+  A = '2,3';
+  B = ',4';
+  B = '5$EXP(6)';
+  C = '$EXP(7)';
 BEGIN
   (*
     Multi-line comment

@@ -1,10 +1,11 @@
 #pragma once
 
-#include <vector>
 #include <unordered_map>
+#include <vector>
+
+#include "CharacterAttributes.hpp"
 #include "Source.hpp"
 #include "SymbolStore.hpp"
-#include "CharacterAttributes.hpp"
 
 struct Token {
     size_t code;
@@ -49,4 +50,3 @@ public:
     [[nodiscard]] const std::vector<Token>& tokens() const;
     [[nodiscard]] const std::vector<Error>& errors() const;
 };
-

@@ -1,9 +1,10 @@
+#include "FileSource.hpp"
+
 #include <gtest/gtest.h>
-#include <fstream>
-#include <cstdlib>
 #include <unistd.h>
 
-#include <FileSource.hpp>
+#include <cstdlib>
+#include <fstream>
 
 class FileSourceTest : public ::testing::Test {
 protected:
@@ -95,11 +96,11 @@ TEST_F(FileSourceTest, TracksRow) {
     createTempFile("A\nB\nC");
     FileSource source(tempPath);
     EXPECT_EQ(source.row(), 0);
-    source.read(); // '\n'
-    source.read(); // 'B'
+    source.read();  // '\n'
+    source.read();  // 'B'
     EXPECT_EQ(source.row(), 1);
-    source.read(); // '\n'
-    source.read(); // 'C'
+    source.read();  // '\n'
+    source.read();  // 'C'
     EXPECT_EQ(source.row(), 2);
 }
 

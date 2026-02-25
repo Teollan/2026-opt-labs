@@ -2,8 +2,7 @@
 
 SourcePosition::SourcePosition() : SourcePosition(4) {}
 
-SourcePosition::SourcePosition(uint8_t tabSize) :
-    tabSize(tabSize) {};
+SourcePosition::SourcePosition(uint8_t tabSize) : tabSize(tabSize) {};
 
 void SourcePosition::advance(char character) {
     switch (character) {

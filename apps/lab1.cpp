@@ -1,8 +1,22 @@
-#include <iostream>
 #include <FileSource.hpp>
+#include <Log.hpp>
 #include <SymbolStore.hpp>
+#include <Table.hpp>
 #include <Tokenizer.hpp>
-#include <TokensView.hpp>
+#include <iostream>
+
+std::string getTypeLabel(SymbolType type) {
+    switch (type) {
+        case SymbolType::Delimiter:
+            return "Delimiter";
+        case SymbolType::Keyword:
+            return "Keyword";
+        case SymbolType::Literal:
+            return "Literal";
+        case SymbolType::Identifier:
+            return "Identifier";
+    }
+}
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -19,12 +33,29 @@ int main(int argc, char* argv[]) {
 
     tokenizer.scan();
 
-    TokensView view(std::cout);
-    view.print(tokenizer.tokens(), symbols);
+    Table("\nTokens", tokenizer.tokens())
+        .addColumn("Code", "{:>5}", [](const auto& t) { return std::to_string(t.code); })
+        .addColumn("Row", "{:>3}", [](const auto& t) { return std::to_string(t.row + 1); })
+        .addColumn("Col", "{:>3}", [](const auto& t) { return std::to_string(t.column + 1); })
+        .addColumn("Type", "{:<10}", [&](const auto& t) { return getTypeLabel(symbols.lookupType(t.code)); })
+        .addColumn("Value", "{:<30}", [&](const auto& t) { return std::string(symbols.lookup(t.code)); })
+        .print();
 
-    for (const auto& error : tokenizer.errors()) {
-        std::cout << std::format("Tokenizer | Error [{}:{}]: {}", error.row + 1, error.column + 1, error.message) << std::endl;
-    }
+    Log("Tokenizer", tokenizer.errors())
+        .setFormatter([](const auto& err) {
+            return std::format("Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message);
+        })
+        .print();
+
+    Table("\nIdentifiers", symbols.identifiers())
+        .addColumn("Code", "{:>5}", [](const auto& pair) { return std::to_string(pair.second); })
+        .addColumn("Value", "{:<30}", [](const auto& pair) { return pair.first; })
+        .print();
+
+    Table("\nLiterals", symbols.literals())
+        .addColumn("Code", "{:>5}", [](const auto& pair) { return std::to_string(pair.second); })
+        .addColumn("Value", "{:<30}", [](const auto& pair) { return pair.first; })
+        .print();
 
     return 0;
 }

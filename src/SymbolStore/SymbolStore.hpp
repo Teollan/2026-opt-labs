@@ -1,8 +1,9 @@
 #pragma once
 
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 #include <vector>
+
 #include "Constants.hpp"
 
 enum class SymbolType {
@@ -21,9 +22,9 @@ const size_t MAX_TOKENS = 2000;
 class SymbolStore {
 private:
     std::array<std::string, MAX_TOKENS> symbols;
-    std::unordered_map<std::string, size_t> keywords;
-    std::unordered_map<std::string, size_t> identifiers;
-    std::unordered_map<std::string, size_t> literals;
+    std::unordered_map<std::string, size_t> _keywords;
+    std::unordered_map<std::string, size_t> _identifiers;
+    std::unordered_map<std::string, size_t> _literals;
 
     void declareDelimiter(char character);
     void declareKeyword(const std::string& keyword);
@@ -36,8 +37,8 @@ public:
     size_t resolveLiteral(const std::string& literal);
 
     [[nodiscard]] bool isKeyword(const std::string& token) const;
-
     [[nodiscard]] const std::string& lookup(size_t code) const;
     [[nodiscard]] SymbolType lookupType(size_t code) const;
+    [[nodiscard]] std::vector<std::pair<std::string, size_t>> identifiers() const;
+    [[nodiscard]] std::vector<std::pair<std::string, size_t>> literals() const;
 };
-

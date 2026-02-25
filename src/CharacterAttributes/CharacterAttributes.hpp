@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+
 #include "Constants.hpp"
 
 enum class Attribute {
@@ -21,4 +22,3 @@ public:
 
     [[nodiscard]] Attribute lookup(char character) const;
 };
-

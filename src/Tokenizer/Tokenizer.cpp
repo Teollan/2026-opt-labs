@@ -1,14 +1,12 @@
 #include "Tokenizer.hpp"
 
 #include <format>
+
 #include "CharacterAttributes.hpp"
 
 // Automata state: START
 Tokenizer::Tokenizer(Source& source, SymbolStore& symbols, CharacterAttributes& attributes) :
-    source(source),
-    symbols(symbols),
-    attributes(attributes),
-    character(source.current()) {}
+    source(source), symbols(symbols), attributes(attributes), character(source.current()) {}
 
 void Tokenizer::scan() {
     // Automata state: LOOP
@@ -66,14 +64,15 @@ void Tokenizer::scanInteger() {
     addToken({
         .code = code,
         .row = source.row(),
-        .column = source.column() - token.length(), // Point to first character of the token
+        .column = source.column() - token.length(),  // Point to first character of the token
     });
 
     token.clear();
 }
 
 void Tokenizer::scanString() {
-    while (!source.done() && (attributes.lookup(character) == Attribute::Letter || attributes.lookup(character) == Attribute::Digit)) {
+    while (!source.done() &&
+           (attributes.lookup(character) == Attribute::Letter || attributes.lookup(character) == Attribute::Digit)) {
         token += character;
         character = source.read();
     }
@@ -88,7 +87,7 @@ void Tokenizer::scanString() {
     addToken({
         .code = code,
         .row = source.row(),
-        .column = source.column() - token.length(), // Point to first character of the token
+        .column = source.column() - token.length(),  // Point to first character of the token
     });
 
     token.clear();

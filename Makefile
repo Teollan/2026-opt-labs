@@ -16,7 +16,7 @@ endif
 LLVM_BIN := $(shell brew --prefix llvm 2>/dev/null)/bin
 
 format:
-	$(LLVM_BIN)/clang-format -i apps/*.cpp tests/*.cpp
+	$(LLVM_BIN)/clang-format -i apps/*.cpp tests/*.cpp src/**/*.cpp src/**/*.hpp src/**/*.tpp
 
 lint:
 	cmake -B build -DCMAKE_CXX_CLANG_TIDY=$(LLVM_BIN)/clang-tidy

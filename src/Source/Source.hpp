@@ -19,4 +19,3 @@ public:
     [[nodiscard]] unsigned int row() const;
     [[nodiscard]] unsigned int column() const;
 };
-

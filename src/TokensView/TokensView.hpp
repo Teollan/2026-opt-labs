@@ -2,8 +2,9 @@
 
 #include <iostream>
 #include <vector>
-#include "Tokenizer.hpp"
+
 #include "SymbolStore.hpp"
+#include "Tokenizer.hpp"
 
 class TokensView {
 private:

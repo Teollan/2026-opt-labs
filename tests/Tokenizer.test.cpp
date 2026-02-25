@@ -1,18 +1,23 @@
 #include <gtest/gtest.h>
 
+#include <CharacterAttributes.hpp>
 #include <StringSource.hpp>
 #include <SymbolStore.hpp>
 #include <Tokenizer.hpp>
-#include <CharacterAttributes.hpp>
 
 class TokenizerTest : public ::testing::Test {
 protected:
     SymbolStore symbols;
     CharacterAttributes attributes;
 
-    void expectToken(const Tokenizer& tokenizer, size_t index,
-                     const std::string& value, SymbolType type,
-                     size_t row, size_t col) {
+    void expectToken(
+        const Tokenizer& tokenizer,
+        size_t index,
+        const std::string& value,
+        SymbolType type,
+        size_t row,
+        size_t col
+    ) {
         ASSERT_LT(index, tokenizer.tokens().size()) << "Token index " << index << " out of range";
         const auto& token = tokenizer.tokens()[index];
         EXPECT_EQ(symbols.lookup(token.code), value) << "Token " << index << " value mismatch";
@@ -21,8 +26,7 @@ protected:
         EXPECT_EQ(token.column, col) << "Token " << index << " col mismatch";
     }
 
-    void expectError(const Tokenizer& tokenizer, size_t index,
-                     size_t row, size_t col) {
+    void expectError(const Tokenizer& tokenizer, size_t index, size_t row, size_t col) {
         ASSERT_LT(index, tokenizer.errors().size()) << "Error index " << index << " out of range";
         const auto& error = tokenizer.errors()[index];
         EXPECT_EQ(error.row, row) << "Error " << index << " row mismatch";
@@ -289,7 +293,8 @@ TEST_F(TokenizerTest, YieldsCorrectTokensForLab1Example) {
         "  X = '10$EXP(20)';\n"
         "  Y = '30,40';\n"
         "BEGIN\n"
-        "END.");
+        "END."
+    );
     Tokenizer tokenizer(source, symbols, attributes);
 
     tokenizer.scan();
@@ -681,7 +686,7 @@ TEST_F(TokenizerTest, YieldsCorrectErrorsInMultilineProgram) {
     tokenizer.scan();
 
     ASSERT_EQ(tokenizer.errors().size(), 1);
-    expectError(tokenizer, 0, 4, 4); // '&' at row 4, col 4
+    expectError(tokenizer, 0, 4, 4);  // '&' at row 4, col 4
 
     // Verify tokens around the error are still correct
     EXPECT_EQ(tokenizer.tokens().size(), 22);
