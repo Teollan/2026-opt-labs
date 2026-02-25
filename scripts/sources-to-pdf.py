@@ -13,6 +13,7 @@ files = sorted(Path("apps").glob("*.cpp"))
 modules = sorted(set(p.parent for p in Path("src").rglob("*.hpp")))
 for module in modules:
     files.extend(sorted(module.glob("*.hpp")))
+    files.extend(sorted(module.glob("*.tpp")))
     files.extend(sorted(module.glob("*.cpp")))
 
 formatter = HtmlFormatter(style="friendly", linenos=True)
@@ -43,6 +44,6 @@ html = (
     "</body></html>"
 )
 
-output = sys.argv[1] if len(sys.argv) > 1 else "docs/sources.pdf"
+output = sys.argv[1] if len(sys.argv) > 1 else "docs/Козлов КВ-33 ЛАБ1 Додаток 1.pdf"
 HTML(string=html).write_pdf(output)
 print(f"Generated {output}")

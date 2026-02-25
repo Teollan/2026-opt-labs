@@ -28,8 +28,8 @@ clean:
 pdf: build
 	@test -d .venv || python3 -m venv .venv
 	@.venv/bin/pip install -q pygments weasyprint
-	@.venv/bin/python scripts/sources-to-pdf.py docs/sources.pdf
-	@.venv/bin/python scripts/tests-to-pdf.py docs/tests.pdf
+	@.venv/bin/python scripts/sources-to-pdf.py "docs/Козлов КВ-33 ЛАБ1 Додаток 1.pdf"
+	@.venv/bin/python scripts/tests-to-pdf.py "docs/Козлов КВ-33 ЛАБ1 Додаток 2.pdf"
 
 module:
 ifndef NAME

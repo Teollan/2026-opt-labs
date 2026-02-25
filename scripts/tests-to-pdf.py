@@ -54,6 +54,6 @@ html = (
     "</body></html>"
 )
 
-output = sys.argv[1] if len(sys.argv) > 1 else "docs/tests.pdf"
+output = sys.argv[1] if len(sys.argv) > 1 else "docs/Козлов КВ-33 ЛАБ1 Додаток 2.pdf"
 HTML(string=html).write_pdf(output)
 print(f"Generated {output}")
