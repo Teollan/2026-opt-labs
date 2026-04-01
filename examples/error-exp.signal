@@ -1,0 +1,10 @@
+PROGRAM HELLO;
+CONST
+ABCD	$
+EXP
+  $ EXP
+  $EXON
+  $123
+  X = '42'
+BEGIN
+END.

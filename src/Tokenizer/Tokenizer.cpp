@@ -34,6 +34,11 @@ void Tokenizer::scan() {
                 scanString();
                 break;
 
+            // Automata state: MULTI_DELIMITER
+            case Attribute::MultiDelimiter:
+                scanMultiDelimiter();
+                break;
+
             // Automata state: COMMENT_START
             case Attribute::Comment:
                 scanComment();
@@ -99,6 +104,54 @@ void Tokenizer::scanString() {
         .row = source.row(),
         .column = source.column() -
                   token.length(),  // Point to first character of the token
+    });
+
+    token.clear();
+}
+
+void Tokenizer::scanMultiDelimiter() {
+    size_t startRow = source.row();
+    size_t startCol = source.column();
+
+    token += character;
+    character = source.read();
+
+    if (source.done() || attributes.lookup(character) != Attribute::Letter) {
+        addError({
+            .message = std::format("Invalid use of '$'"),
+            .row = startRow,
+            .column = startCol,
+        });
+
+        token.clear();
+
+        return;
+    }
+
+    while (!source.done() &&
+           (attributes.lookup(character) == Attribute::Letter)) {
+        token += character;
+        character = source.read();
+    }
+
+    if (!symbols.isMultiDelimiter(token)) {
+        addError({
+            .message = std::format("Invalid use of '$'"),
+            .row = startRow,
+            .column = startCol,
+        });
+
+        token.clear();
+        return;
+    }
+
+    code = symbols.resolveMultiDelimiter(token);
+
+    // Automata state: WRITE
+    addToken({
+        .code = code,
+        .row = startRow,
+        .column = startCol,
     });
 
     token.clear();

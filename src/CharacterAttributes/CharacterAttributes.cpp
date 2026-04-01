@@ -30,7 +30,9 @@ CharacterAttributes::CharacterAttributes() {
     attributes['\''] = Attribute::Delimiter;
     attributes[','] = Attribute::Delimiter;
     attributes[')'] = Attribute::Delimiter;
-    attributes['$'] = Attribute::Delimiter;
+
+    // Multi-delimiters
+    attributes['$'] = Attribute::MultiDelimiter;
 
     // Comment start
     attributes['('] = Attribute::Comment;

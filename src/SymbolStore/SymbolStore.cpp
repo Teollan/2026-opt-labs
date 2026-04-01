@@ -7,19 +7,50 @@
 SymbolStore::SymbolStore() {
     // Initialize ASCII symbols
     for (size_t i = 0; i < ASCII_TABLE_SIZE; i++) {
-        declareDelimiter(static_cast<char>(i));
+        declareAscii(static_cast<char>(i));
     }
+
+    // Initialize multi-character delimiters
+    declareMultiDelimiter("$EXP");
 
     // Initialize keywords
     declareKeyword("PROGRAM");
     declareKeyword("CONST");
     declareKeyword("BEGIN");
     declareKeyword("END");
-    declareKeyword("EXP");
 }
 
-void SymbolStore::declareDelimiter(const char character) {
+void SymbolStore::declareAscii(const char character) {
     symbols[static_cast<unsigned char>(character)] = std::string(1, character);
+}
+
+void SymbolStore::declareMultiDelimiter(const std::string& delimiter) {
+    if (_multiDelimiters.contains(delimiter)) {
+        throw std::invalid_argument(
+            std::format("Multi-delimiter \'{}\' is already declared", delimiter)
+        );
+    }
+
+    size_t code = MULTI_DELIMITERS_OFFSET + _multiDelimiters.size();
+
+    if (code >= KEYWORDS_OFFSET) {
+        throw std::overflow_error(
+            "Exceeded maximum number of multi-delimiters"
+        );
+    }
+
+    _multiDelimiters[delimiter] = code;
+    symbols[code] = delimiter;
+}
+
+size_t SymbolStore::resolveMultiDelimiter(const std::string& delimiter) {
+    if (!_multiDelimiters.contains(delimiter)) {
+        throw std::invalid_argument(
+            std::format("\'{}\' is not a multi-delimiter", delimiter)
+        );
+    }
+
+    return _multiDelimiters[delimiter];
 }
 
 void SymbolStore::declareKeyword(const std::string& keyword) {
@@ -83,9 +114,17 @@ bool SymbolStore::isKeyword(const std::string& token) const {
     return _keywords.contains(token);
 }
 
+bool SymbolStore::isMultiDelimiter(const std::string& token) const {
+    return _multiDelimiters.contains(token);
+}
+
 SymbolType SymbolStore::lookupType(size_t code) const {
+    if (code < MULTI_DELIMITERS_OFFSET) {
+        return SymbolType::Ascii;
+    }
+
     if (code < KEYWORDS_OFFSET) {
-        return SymbolType::Delimiter;
+        return SymbolType::MultiDelimiter;
     }
 
     if (code < LITERALS_OFFSET) {

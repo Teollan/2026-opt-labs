@@ -36,6 +36,7 @@ private:
     void scanInteger();
     void scanString();
     void scanComment();
+    void scanMultiDelimiter();
     void scanDelimiter();
     void scanInvalid();
 

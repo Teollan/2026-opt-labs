@@ -9,6 +9,7 @@ enum class Attribute {
     Digit,
     Letter,
     Delimiter,
+    MultiDelimiter,
     Comment,
     Invalid,
 };

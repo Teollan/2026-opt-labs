@@ -7,14 +7,18 @@
 
 std::string getTypeLabel(SymbolType type) {
     switch (type) {
-        case SymbolType::Delimiter:
-            return "Delimiter";
+        case SymbolType::Ascii:
+            return "Ascii";
+        case SymbolType::MultiDelimiter:
+            return "Multi-Delimiter";
         case SymbolType::Keyword:
             return "Keyword";
         case SymbolType::Literal:
             return "Literal";
         case SymbolType::Identifier:
             return "Identifier";
+        default:
+            return "N/A";
     }
 }
 
@@ -44,7 +48,7 @@ int main(int argc, char* argv[]) {
             [](const auto& t) { return std::to_string(t.column + 1); }
         )
         .addColumn(
-            "Type", "{:<10}",
+            "Type", "{:<15}",
             [&](const auto& t) {
                 return getTypeLabel(symbols.lookupType(t.code));
             }

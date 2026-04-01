@@ -1,40 +1,36 @@
 #include "FileSource.hpp"
 
 #include <gtest/gtest.h>
-#include <unistd.h>
 
-#include <cstdlib>
+#include <filesystem>
 #include <fstream>
 
 class FileSourceTest : public ::testing::Test {
 protected:
-    std::string tempPath;
+    std::filesystem::path tempPath;
 
     void createTempFile(const std::string& content) {
-        char tmpl[] = "/tmp/source_test_XXXXXX";
-        int fd = mkstemp(tmpl);
-        tempPath = tmpl;
-        close(fd);
+        tempPath = std::filesystem::temp_directory_path() / "source_test.tmp";
         std::ofstream out(tempPath);
         out << content;
     }
 
     void TearDown() override {
         if (!tempPath.empty()) {
-            std::remove(tempPath.c_str());
+            std::filesystem::remove(tempPath);
         }
     }
 };
 
 TEST_F(FileSourceTest, PointsToFirstCharAfterInit) {
     createTempFile("ABC");
-    FileSource source(tempPath);
+    FileSource source(tempPath.string());
     EXPECT_EQ(source.current(), 'A');
 }
 
 TEST_F(FileSourceTest, PointsToCorrectCharAfterOneRead) {
     createTempFile("ABC");
-    FileSource source(tempPath);
+    FileSource source(tempPath.string());
     char next = source.read();
     EXPECT_EQ(next, 'B');
     EXPECT_EQ(source.current(), 'B');
@@ -42,7 +38,7 @@ TEST_F(FileSourceTest, PointsToCorrectCharAfterOneRead) {
 
 TEST_F(FileSourceTest, PointsToCorrectCharAfterMultipleReads) {
     createTempFile("ABCDE");
-    FileSource source(tempPath);
+    FileSource source(tempPath.string());
     source.read();
     source.read();
     char c = source.read();
@@ -52,7 +48,7 @@ TEST_F(FileSourceTest, PointsToCorrectCharAfterMultipleReads) {
 
 TEST_F(FileSourceTest, DoneIsFalseWhenCharsRemain) {
     createTempFile("AB");
-    FileSource source(tempPath);
+    FileSource source(tempPath.string());
     EXPECT_FALSE(source.done());
     source.read();
     EXPECT_FALSE(source.done());
@@ -60,7 +56,7 @@ TEST_F(FileSourceTest, DoneIsFalseWhenCharsRemain) {
 
 TEST_F(FileSourceTest, DoneIsTrueAtEnd) {
     createTempFile("AB");
-    FileSource source(tempPath);
+    FileSource source(tempPath.string());
     source.read();
     source.read();
     EXPECT_TRUE(source.done());
@@ -68,13 +64,13 @@ TEST_F(FileSourceTest, DoneIsTrueAtEnd) {
 
 TEST_F(FileSourceTest, DoneIsTrueForEmptyFile) {
     createTempFile("");
-    FileSource source(tempPath);
+    FileSource source(tempPath.string());
     EXPECT_TRUE(source.done());
 }
 
 TEST_F(FileSourceTest, CurrentReturnsCorrectChar) {
     createTempFile("XYZ");
-    FileSource source(tempPath);
+    FileSource source(tempPath.string());
     EXPECT_EQ(source.current(), 'X');
     source.read();
     EXPECT_EQ(source.current(), 'Y');
@@ -84,7 +80,7 @@ TEST_F(FileSourceTest, CurrentReturnsCorrectChar) {
 
 TEST_F(FileSourceTest, TracksColumn) {
     createTempFile("ABC");
-    FileSource source(tempPath);
+    FileSource source(tempPath.string());
     EXPECT_EQ(source.column(), 0);
     source.read();
     EXPECT_EQ(source.column(), 1);
@@ -94,7 +90,7 @@ TEST_F(FileSourceTest, TracksColumn) {
 
 TEST_F(FileSourceTest, TracksRow) {
     createTempFile("A\nB\nC");
-    FileSource source(tempPath);
+    FileSource source(tempPath.string());
     EXPECT_EQ(source.row(), 0);
     source.read();  // '\n'
     source.read();  // 'B'
@@ -106,7 +102,7 @@ TEST_F(FileSourceTest, TracksRow) {
 
 TEST_F(FileSourceTest, SingleCharInput) {
     createTempFile("X");
-    FileSource source(tempPath);
+    FileSource source(tempPath.string());
     EXPECT_FALSE(source.done());
     EXPECT_EQ(source.current(), 'X');
     source.read();
