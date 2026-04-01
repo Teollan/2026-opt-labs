@@ -8,7 +8,7 @@
 std::string getTypeLabel(SymbolType type) {
     switch (type) {
         case SymbolType::Ascii:
-            return "Ascii";
+            return "Delimiter";
         case SymbolType::MultiDelimiter:
             return "Multi-Delimiter";
         case SymbolType::Keyword:

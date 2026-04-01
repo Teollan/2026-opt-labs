@@ -2,12 +2,8 @@
 
 Source::Source() = default;
 
-Source::Source(Cursor cursor) : cursor(cursor) {}
+Source::Source(Cursor cursor) : _cursor(cursor) {}
 
-unsigned int Source::row() const {
-    return cursor.row();
-}
-
-unsigned int Source::column() const {
-    return cursor.column();
+const Cursor& Source::cursor() const {
+    return _cursor;
 }

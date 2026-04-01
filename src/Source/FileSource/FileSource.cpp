@@ -9,7 +9,7 @@ char FileSource::current() {
 }
 
 char FileSource::read() {
-    cursor.advance(character);
+    _cursor.advance(character);
     character = static_cast<char>(file.get());
 
     return character;

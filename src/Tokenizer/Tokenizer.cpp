@@ -76,8 +76,8 @@ void Tokenizer::scanInteger() {
 
     addToken({
         .code = code,
-        .row = source.row(),
-        .column = source.column() -
+        .row = source.cursor().row(),
+        .column = source.cursor().column() -
                   token.length(),  // Point to first character of the token
     });
 
@@ -101,8 +101,8 @@ void Tokenizer::scanString() {
 
     addToken({
         .code = code,
-        .row = source.row(),
-        .column = source.column() -
+        .row = source.cursor().row(),
+        .column = source.cursor().column() -
                   token.length(),  // Point to first character of the token
     });
 
@@ -110,8 +110,8 @@ void Tokenizer::scanString() {
 }
 
 void Tokenizer::scanMultiDelimiter() {
-    size_t startRow = source.row();
-    size_t startCol = source.column();
+    size_t startRow = source.cursor().row();
+    size_t startCol = source.cursor().column();
 
     token += character;
     character = source.read();
@@ -158,8 +158,8 @@ void Tokenizer::scanMultiDelimiter() {
 }
 
 void Tokenizer::scanComment() {
-    size_t startRow = source.row();
-    size_t startCol = source.column();
+    size_t startRow = source.cursor().row();
+    size_t startCol = source.cursor().column();
 
     character = source.read();
 
@@ -204,8 +204,8 @@ void Tokenizer::scanComment() {
 void Tokenizer::scanDelimiter() {
     addToken({
         .code = static_cast<size_t>(character),
-        .row = source.row(),
-        .column = source.column(),
+        .row = source.cursor().row(),
+        .column = source.cursor().column(),
     });
 
     character = source.read();
@@ -214,8 +214,8 @@ void Tokenizer::scanDelimiter() {
 void Tokenizer::scanInvalid() {
     addError({
         .message = std::format("Invalid character \'{}\'", character),
-        .row = source.row(),
-        .column = source.column(),
+        .row = source.cursor().row(),
+        .column = source.cursor().column(),
     });
 
     character = source.read();

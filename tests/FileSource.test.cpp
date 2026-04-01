@@ -81,23 +81,23 @@ TEST_F(FileSourceTest, CurrentReturnsCorrectChar) {
 TEST_F(FileSourceTest, TracksColumn) {
     createTempFile("ABC");
     FileSource source(tempPath.string());
-    EXPECT_EQ(source.column(), 0);
+    EXPECT_EQ(source.cursor().column(), 0);
     source.read();
-    EXPECT_EQ(source.column(), 1);
+    EXPECT_EQ(source.cursor().column(), 1);
     source.read();
-    EXPECT_EQ(source.column(), 2);
+    EXPECT_EQ(source.cursor().column(), 2);
 }
 
 TEST_F(FileSourceTest, TracksRow) {
     createTempFile("A\nB\nC");
     FileSource source(tempPath.string());
-    EXPECT_EQ(source.row(), 0);
+    EXPECT_EQ(source.cursor().row(), 0);
     source.read();  // '\n'
     source.read();  // 'B'
-    EXPECT_EQ(source.row(), 1);
+    EXPECT_EQ(source.cursor().row(), 1);
     source.read();  // '\n'
     source.read();  // 'C'
-    EXPECT_EQ(source.row(), 2);
+    EXPECT_EQ(source.cursor().row(), 2);
 }
 
 TEST_F(FileSourceTest, SingleCharInput) {

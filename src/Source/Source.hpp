@@ -4,7 +4,7 @@
 
 class Source {
 protected:
-    Cursor cursor;
+    Cursor _cursor;
 
 public:
     Source();
@@ -16,6 +16,5 @@ public:
     virtual char read() = 0;
     virtual bool done() = 0;
 
-    [[nodiscard]] unsigned int row() const;
-    [[nodiscard]] unsigned int column() const;
+    [[nodiscard]] const Cursor& cursor() const;
 };
