@@ -1,14 +1,14 @@
 #pragma once
 
-#include <SourcePosition.hpp>
+#include <Cursor.hpp>
 
 class Source {
 protected:
-    SourcePosition position;
+    Cursor cursor;
 
 public:
     Source();
-    Source(SourcePosition position);
+    Source(Cursor cursor);
 
     virtual ~Source() = default;
 

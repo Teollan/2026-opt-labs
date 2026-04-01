@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-class SourcePosition {
+class Cursor {
 private:
     uint8_t tabSize = 4;
 
@@ -10,8 +10,8 @@ private:
     unsigned int _column = 0;
 
 public:
-    SourcePosition();
-    SourcePosition(uint8_t tabSize);
+    Cursor();
+    Cursor(uint8_t tabSize);
 
     void advance(char character);
     [[nodiscard]] unsigned int row() const;

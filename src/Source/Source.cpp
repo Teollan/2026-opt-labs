@@ -2,12 +2,12 @@
 
 Source::Source() = default;
 
-Source::Source(SourcePosition position) : position(position) {}
+Source::Source(Cursor cursor) : cursor(cursor) {}
 
 unsigned int Source::row() const {
-    return position.row();
+    return cursor.row();
 }
 
 unsigned int Source::column() const {
-    return position.column();
+    return cursor.column();
 }
