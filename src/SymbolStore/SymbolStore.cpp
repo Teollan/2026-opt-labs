@@ -11,13 +11,13 @@ SymbolStore::SymbolStore() {
     }
 
     // Initialize multi-character delimiters
-    declareMultiDelimiter("$EXP");
+    declareMultiDelimiter(MultiDelimiter::Exp);
 
     // Initialize keywords
-    declareKeyword("PROGRAM");
-    declareKeyword("CONST");
-    declareKeyword("BEGIN");
-    declareKeyword("END");
+    declareKeyword(Keyword::Program);
+    declareKeyword(Keyword::Const);
+    declareKeyword(Keyword::Begin);
+    declareKeyword(Keyword::End);
 }
 
 void SymbolStore::declareAscii(const char character) {
