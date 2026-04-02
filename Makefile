@@ -1,4 +1,4 @@
-.PHONY: build test run lint format clean module pdf
+.PHONY: build test run-lab-1 run-lab-2 lint format clean module pdf
 
 build:
 	cmake -B build -DCMAKE_BUILD_TYPE=Debug
@@ -7,19 +7,25 @@ build:
 test: build
 	ctest --test-dir build --output-on-failure
 
-run: build
+run-lab-1: build
 ifndef FILE
-	$(error Usage: make run FILE=<filename>)
+	$(error Usage: make run-lab-1 FILE=<filename>)
 endif
 	./build/apps/lab1 examples/$(FILE).signal
 
-LLVM_BIN := $(shell brew --prefix llvm 2>/dev/null)/bin
+run-lab-2: build
+ifndef FILE
+	$(error Usage: make run-lab-2 FILE=<filename>)
+endif
+	./build/apps/lab2 examples/$(FILE).signal
+
+SOURCES := $(wildcard apps/*.cpp tests/*.cpp src/*/*.cpp src/*/*.hpp src/*/*.tpp)
 
 format:
-	$(LLVM_BIN)/clang-format -i apps/*.cpp tests/*.cpp src/**/*.cpp src/**/*.hpp src/**/*.tpp
+	clang-format -i $(SOURCES)
 
 lint:
-	cmake -B build -DCMAKE_CXX_CLANG_TIDY=$(LLVM_BIN)/clang-tidy
+	cmake -B build -DCMAKE_CXX_CLANG_TIDY=clang-tidy
 	cmake --build build --clean-first
 
 clean:

@@ -77,9 +77,7 @@ TEST_F(SymbolStoreTest, LookupThrowsForInvalidCode) {
 // lookupType
 TEST_F(SymbolStoreTest, LookupTypeReturnsCharacterForAsciiCode) {
     SymbolStore symbols;
-    EXPECT_EQ(
-        symbols.lookupType(static_cast<size_t>('A')), SymbolType::Ascii
-    );
+    EXPECT_EQ(symbols.lookupType(static_cast<size_t>('A')), SymbolType::Ascii);
 }
 
 TEST_F(SymbolStoreTest, LookupTypeReturnsKeywordForKeywordCode) {
