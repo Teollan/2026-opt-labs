@@ -44,3 +44,4 @@ Key modules:
 - clang-tidy checks: `bugprone-*`, `modernize-*`, `readability-*` (with select exclusions; see `.clang-tidy` files in root, `src/`, `tests/`)
 - Header-only templates use `.tpp` extension (included at bottom of `.hpp`)
 - Headers use `#pragma once`
+- Private member variables use `_` prefix (e.g. `_data`, `_root`)
