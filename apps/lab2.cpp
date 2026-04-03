@@ -1,4 +1,4 @@
-#include <iostream>
+#include <windows.h>
 
 #include <FileSource.hpp>
 #include <Logger.hpp>
@@ -7,7 +7,7 @@
 #include <Table.hpp>
 #include <Tokenizer.hpp>
 #include <TreeView.hpp>
-#include <windows.h>
+#include <iostream>
 
 int main(int argc, char* argv[]) {
     SetConsoleOutputCP(CP_UTF8);
@@ -33,7 +33,9 @@ int main(int argc, char* argv[]) {
 
     TreeView<SyntaxData>("\nSyntax Tree", parser.tree())
         .setNodeFormatter([](const auto& data) { return data.symbol; })
-        .setEdgeFormatter([](const auto& data) { return std::format("({})", data.rule); })
+        .setEdgeFormatter([](const auto& data) {
+            return std::format("({})", data.rule);
+        })
         .print();
 
     return 0;

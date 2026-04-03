@@ -1,7 +1,7 @@
 .PHONY: build test run-lab-1 run-lab-2 lint format clean module pdf
 
 build:
-	cmake -B build -DCMAKE_BUILD_TYPE=Debug
+	cmake -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Debug
 	cmake --build build
 
 test: build
@@ -25,7 +25,7 @@ format:
 	clang-format -i $(SOURCES)
 
 lint:
-	cmake -B build -DCMAKE_CXX_CLANG_TIDY=clang-tidy
+	cmake -B build -G "MinGW Makefiles" -DCMAKE_CXX_CLANG_TIDY="clang-tidy;--extra-arg=-isystem;--extra-arg=D:/SDKs/msys64/ucrt64/include/c++/14.2.0;--extra-arg=-isystem;--extra-arg=D:/SDKs/msys64/ucrt64/include/c++/14.2.0/x86_64-w64-mingw32"
 	cmake --build build --clean-first
 
 clean:

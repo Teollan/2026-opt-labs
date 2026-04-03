@@ -1,24 +1,27 @@
 #include <gtest/gtest.h>
 
-#include <format>
-
 #include <CharacterAttributes.hpp>
 #include <Logger.hpp>
 #include <Parser.hpp>
 #include <StringSource.hpp>
 #include <SymbolStore.hpp>
 #include <Tokenizer.hpp>
+#include <format>
 
 class ParserTest : public ::testing::Test {
 protected:
     SymbolStore symbols;
     CharacterAttributes attributes;
     std::ostringstream logOutput;
-    Logger<Error> logger{"Tokenizer", [](const Error& err) {
-        return std::format(
-            "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
-        );
-    }, logOutput};
+    Logger<Error> logger{
+        "Tokenizer",
+        [](const Error& err) {
+            return std::format(
+                "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
+            );
+        },
+        logOutput
+    };
 
     void SetUp() override {
         logger.clear();
@@ -106,7 +109,8 @@ TEST_F(ParserTest, ParsesProgramWithOneConstant) {
     EXPECT_EQ(constDecls.data().rule, "6");
     ASSERT_EQ(constDecls.children().size(), 1);
 
-    // Rule 7: <constant-declaration> <constant-declarations-list> — 2 nonterminals
+    // Rule 7: <constant-declaration> <constant-declarations-list> — 2
+    // nonterminals
     auto& declList = *constDecls.children()[0];
     EXPECT_EQ(declList.data().rule, "7");
     ASSERT_EQ(declList.children().size(), 2);
@@ -162,8 +166,8 @@ TEST_F(ParserTest, ParsesConstantWithCommaVariant) {
     auto& programBody = *root.children()[0]->children()[0];
     auto& block = *programBody.children()[1];
     // declarations[0] -> constDecls[0] -> declList[0] -> decl
-    auto& decl = *block.children()[0]
-        ->children()[0]->children()[0]->children()[0];
+    auto& decl =
+        *block.children()[0]->children()[0]->children()[0]->children()[0];
     // decl[1] = constant, constant[0] = complexNum
     auto& complexNum = *decl.children()[1]->children()[0];
 
@@ -193,8 +197,8 @@ TEST_F(ParserTest, ParsesConstantWithExpVariant) {
     auto& root = parser.tree().root();
     auto& programBody = *root.children()[0]->children()[0];
     auto& block = *programBody.children()[1];
-    auto& decl = *block.children()[0]
-        ->children()[0]->children()[0]->children()[0];
+    auto& decl =
+        *block.children()[0]->children()[0]->children()[0]->children()[0];
     auto& complexNum = *decl.children()[1]->children()[0];
 
     auto& leftPart = *complexNum.children()[0];
@@ -222,8 +226,8 @@ TEST_F(ParserTest, ParsesEmptyComplexNumber) {
     auto& root = parser.tree().root();
     auto& programBody = *root.children()[0]->children()[0];
     auto& block = *programBody.children()[1];
-    auto& decl = *block.children()[0]
-        ->children()[0]->children()[0]->children()[0];
+    auto& decl =
+        *block.children()[0]->children()[0]->children()[0]->children()[0];
     auto& complexNum = *decl.children()[1]->children()[0];
 
     EXPECT_EQ(complexNum.children()[0]->data().symbol, "<empty>");
@@ -282,8 +286,8 @@ TEST_F(ParserTest, ParsesCommaOnlyConstant) {
     auto& root = parser.tree().root();
     auto& programBody = *root.children()[0]->children()[0];
     auto& block = *programBody.children()[1];
-    auto& decl = *block.children()[0]
-        ->children()[0]->children()[0]->children()[0];
+    auto& decl =
+        *block.children()[0]->children()[0]->children()[0]->children()[0];
     auto& complexNum = *decl.children()[1]->children()[0];
 
     EXPECT_EQ(complexNum.children()[0]->data().symbol, "<empty>");
@@ -305,12 +309,14 @@ TEST_F(ParserTest, ParsesExpOnlyConstant) {
     auto& root = parser.tree().root();
     auto& programBody = *root.children()[0]->children()[0];
     auto& block = *programBody.children()[1];
-    auto& decl = *block.children()[0]
-        ->children()[0]->children()[0]->children()[0];
+    auto& decl =
+        *block.children()[0]->children()[0]->children()[0]->children()[0];
     auto& complexNum = *decl.children()[1]->children()[0];
 
     EXPECT_EQ(complexNum.children()[0]->data().symbol, "<empty>");
-    EXPECT_EQ(complexNum.children()[1]->data().symbol, "$EXP( <unsigned-integer> )");
+    EXPECT_EQ(
+        complexNum.children()[1]->data().symbol, "$EXP( <unsigned-integer> )"
+    );
 }
 
 // --- Missing symbol errors ---
@@ -320,7 +326,10 @@ TEST_F(ParserTest, LogsErrorForMissingProcedureIdentifier) {
     parser.parse();
 
     ASSERT_GE(logger.messages().size(), 1);
-    expectError(0, SyntaxError::ExpectedIdentifier); // TODO: update after implementing constext specific identifier error messages
+    expectError(
+        0, SyntaxError::ExpectedIdentifier
+    );  // TODO: update after implementing constext specific identifier error
+        // messages
 }
 
 TEST_F(ParserTest, LogsErrorForMissingEquals) {

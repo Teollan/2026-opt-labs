@@ -8,7 +8,8 @@ class SymbolStoreTest : public ::testing::Test {};
 TEST_F(SymbolStoreTest, ResolveKeywordReturnsCodeForDeclaredKeyword) {
     SymbolStore symbols;
     size_t code = symbols.resolveKeyword("PROGRAM");
-    EXPECT_EQ(symbols.lookup(code), "PROGRAM");
+    auto token = symbols.lookup(code);
+    EXPECT_EQ(token, "PROGRAM");
 }
 
 TEST_F(SymbolStoreTest, ResolveKeywordReturnsSameCodeForSameKeyword) {

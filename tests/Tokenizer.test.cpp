@@ -1,23 +1,26 @@
 #include <gtest/gtest.h>
 
-#include <format>
-
 #include <CharacterAttributes.hpp>
 #include <Logger.hpp>
 #include <StringSource.hpp>
 #include <SymbolStore.hpp>
 #include <Tokenizer.hpp>
+#include <format>
 
 class TokenizerTest : public ::testing::Test {
 protected:
     SymbolStore symbols;
     CharacterAttributes attributes;
     std::ostringstream logOutput;
-    Logger<Error> logger{"Tokenizer", [](const Error& err) {
-        return std::format(
-            "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
-        );
-    }, logOutput};
+    Logger<Error> logger{
+        "Tokenizer",
+        [](const Error& err) {
+            return std::format(
+                "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
+            );
+        },
+        logOutput
+    };
 
     void SetUp() override {
         logger.clear();
@@ -43,11 +46,7 @@ protected:
         EXPECT_EQ(token.column, col) << "Token " << index << " col mismatch";
     }
 
-    void expectError(
-        size_t index,
-        size_t row,
-        size_t col
-    ) {
+    void expectError(size_t index, size_t row, size_t col) {
         ASSERT_LT(index, logger.messages().size())
             << "Error index " << index << " out of range";
         const auto& error = logger.messages()[index];

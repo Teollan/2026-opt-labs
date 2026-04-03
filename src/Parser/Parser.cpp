@@ -1,13 +1,17 @@
 #include "Parser.hpp"
 
-#include <stdexcept>
 #include <format>
+#include <stdexcept>
 
-Parser::Parser(const SymbolStore& symbols, const std::vector<Token>& tokens, Logger<Error>& logger) :
+Parser::Parser(
+    const SymbolStore& symbols,
+    const std::vector<Token>& tokens,
+    Logger<Error>& logger
+) :
     symbols(symbols),
     _logger(logger),
     tokens(Stack<Token>({tokens.rbegin(), tokens.rend()})),
-    _tree(Tree<SyntaxData>({ .symbol = "<signal-program>", .rule = "S" })) {
+    _tree(Tree<SyntaxData>({.symbol = "<signal-program>", .rule = "S"})) {
     _nodeStack.push(&_tree.root());
 }
 
@@ -45,7 +49,7 @@ void Parser::parseProgram() {
     } catch (const std::runtime_error& error) {
         recoverFromParseProcedureHeaderPanic(node);
     }
-    
+
     try {
         parseBlock();
     } catch (const std::runtime_error& error) {
@@ -116,7 +120,8 @@ void Parser::parseConstantDeclarations() {
     _nodeStack.pop();
 }
 
-// 7. <constant-declarations-list> --> <constant-declaration> <constant-declarations-list> | <empty>
+// 7. <constant-declarations-list> --> <constant-declaration>
+// <constant-declarations-list> | <empty>
 void Parser::parseConstantDeclarationsList() {
     auto isEmpty = consider(Keyword::Begin);
 
@@ -131,7 +136,7 @@ void Parser::parseConstantDeclarationsList() {
         } catch (const std::runtime_error& error) {
             recoverFromParseConstantDeclarationPanic(node);
         }
-        
+
         parseConstantDeclarationsList();
     } else {
         grow({
@@ -206,7 +211,8 @@ void Parser::parseLeftPart() {
     _nodeStack.pop();
 }
 
-// 12. <right-part> --> ,<unsigned-integer> | $EXP( <unsigned-integer> ) | <empty>
+// 12. <right-part> --> ,<unsigned-integer> | $EXP( <unsigned-integer> ) |
+// <empty>
 void Parser::parseRightPart() {
     auto isCommaVariant = consider(Delimiter::Comma);
 
@@ -274,7 +280,8 @@ void Parser::parseProcedureIdentifier() {
 
 // 15. <identifier> --> <letter><string>
 void Parser::parseIdentifier() {
-    auto token = expect(SymbolType::Identifier, SyntaxError::ExpectedIdentifier);
+    auto token =
+        expect(SymbolType::Identifier, SyntaxError::ExpectedIdentifier);
 
     grow({
         .symbol = symbols.lookup(token.code),
@@ -286,7 +293,8 @@ void Parser::parseIdentifier() {
 
 // 17. <unsigned-integer> --> <digit><digits-string>
 void Parser::parseUnsignedInteger() {
-    auto token = expect(SymbolType::Literal, SyntaxError::ExpectedUnsignedInteger);
+    auto token =
+        expect(SymbolType::Literal, SyntaxError::ExpectedUnsignedInteger);
 
     grow({
         .symbol = symbols.lookup(token.code),
@@ -296,9 +304,7 @@ void Parser::parseUnsignedInteger() {
     _nodeStack.pop();
 }
 
-void Parser::recoverFromParseProgramPanic(
-    TreeNode<SyntaxData>& parentNode
-) {
+void Parser::recoverFromParseProgramPanic(TreeNode<SyntaxData>& parentNode) {
     // If this is reached, the program is fucked
     // Clear all tokens and pop all nodes until the root
     tokens.clear();
@@ -330,9 +336,7 @@ void Parser::recoverFromParseProcedureHeaderPanic(
     });
 }
 
-void Parser::recoverFromParseBlockPanic(
-    TreeNode<SyntaxData>& parentNode
-) {
+void Parser::recoverFromParseBlockPanic(TreeNode<SyntaxData>& parentNode) {
     // Pop tokens until we find a token to continue parsing from.
     auto referenceToken = tokens.popUntil([&](const Token& token) {
         const auto& symbol = symbols.lookup(token.code);
@@ -384,7 +388,10 @@ void Parser::recoverFromParseConstantDeclarationPanic(
     });
 }
 
-Token Parser::expect(const std::string& expected, const std::string& errorMessage) {
+Token Parser::expect(
+    const std::string& expected,
+    const std::string& errorMessage
+) {
     auto token = tokens.pop();
 
     if (!token) {
@@ -443,7 +450,7 @@ bool Parser::consider(SymbolType expected) {
 }
 
 void Parser::panic(const std::string& message) {
-    _logger.message({ .message = message, .row = 0, .column = 0 });
+    _logger.message({.message = message, .row = 0, .column = 0});
 
     throw std::runtime_error(message);
 }

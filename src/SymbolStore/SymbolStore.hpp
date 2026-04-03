@@ -42,12 +42,11 @@ public:
     size_t resolveIdentifier(const std::string& identifier);
     size_t resolveLiteral(const std::string& literal);
 
-    [[nodiscard]] bool isKeyword(const std::string& token) const;
-    [[nodiscard]] bool isMultiDelimiter(const std::string& token) const;
+    bool isKeyword(const std::string& token) const;
+    bool isMultiDelimiter(const std::string& token) const;
 
-    [[nodiscard]] const std::string& lookup(size_t code) const;
-    [[nodiscard]] SymbolType lookupType(size_t code) const;
-    [[nodiscard]] std::vector<std::pair<std::string, size_t>>
-    identifiers() const;
-    [[nodiscard]] std::vector<std::pair<std::string, size_t>> literals() const;
+    const std::string& lookup(size_t code) const;
+    SymbolType lookupType(size_t code) const;
+    std::vector<std::pair<std::string, size_t>> identifiers() const;
+    std::vector<std::pair<std::string, size_t>> literals() const;
 };

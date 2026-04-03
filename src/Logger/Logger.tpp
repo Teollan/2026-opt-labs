@@ -4,9 +4,7 @@ Logger<T>::Logger(
     std::function<std::string(const T&)> formatter,
     std::ostream& out
 ) :
-    _name(std::move(name)),
-    _formatter(std::move(formatter)),
-    _out(out) {}
+    _name(std::move(name)), _formatter(std::move(formatter)), _out(out) {}
 
 template <typename T>
 void Logger<T>::message(const T& data) {
