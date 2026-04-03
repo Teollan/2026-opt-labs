@@ -1,12 +1,17 @@
+#include <iostream>
+
 #include <FileSource.hpp>
 #include <Log.hpp>
 #include <Parser.hpp>
 #include <SymbolStore.hpp>
 #include <Table.hpp>
 #include <Tokenizer.hpp>
-#include <iostream>
+#include <TreeView.hpp>
+#include <windows.h>
 
 int main(int argc, char* argv[]) {
+    SetConsoleOutputCP(CP_UTF8);
+
     if (argc < 2) {
         std::cerr << "Usage: lab2 <filename>" << std::endl;
         return 1;
@@ -28,6 +33,11 @@ int main(int argc, char* argv[]) {
 
     Parser parser(symbols, tokenizer.tokens());
     parser.parse();
+
+    TreeView<SyntaxData>(parser.tree())
+        .setNodeFormatter([](const auto& data) { return std::format("{}", data.symbol); })
+        .setEdgeFormatter([](const auto& data) { return std::format("({})", data.rule); })
+        .print();
 
     return 0;
 }

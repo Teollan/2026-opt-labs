@@ -11,6 +11,7 @@ public:
     Tree(T data);
 
     TreeNode<T>& root();
+    const TreeNode<T>& root() const;
 };
 
 #include "Tree.tpp"
