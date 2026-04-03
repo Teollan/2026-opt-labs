@@ -10,6 +10,7 @@
 template <typename T>
 class TreeView {
 private:
+    std::string _title;
     const Tree<T>& _tree;
     std::ostream& _out;
     std::function<std::string(const T&)> _nodeFormatter;
@@ -22,7 +23,7 @@ private:
     ) const;
 
 public:
-    TreeView(const Tree<T>& tree, std::ostream& out = std::cout);
+    TreeView(std::string title, const Tree<T>& tree, std::ostream& out = std::cout);
 
     TreeView& setNodeFormatter(std::function<std::string(const T&)> formatter);
     TreeView& setEdgeFormatter(std::function<std::string(const T&)> formatter);

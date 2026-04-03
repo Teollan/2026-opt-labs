@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Logger.hpp>
 #include <Stack.hpp>
 #include <SymbolStore.hpp>
 #include <Tokenizer.hpp>
@@ -13,7 +14,7 @@ namespace SyntaxError {
     constexpr auto ExpectedBeginKeyword = "Expected 'BEGIN' keyword before statements list";
     constexpr auto ExpectedEndKeyword = "Expected 'END' keyword at the end of the block";
     constexpr auto ExpectedConstKeyword = "Expected 'CONST' keyword before constant declarations";
-    constexpr auto ExpectedIdentifier = "Expected identifier in constant declaration";
+    constexpr auto ExpectedIdentifier = "Expected identifier";
     constexpr auto ExpectedEquals = "Expected '=' in constant declaration";
     constexpr auto ExpectedConstantSemicolon = "Expected ';' at the end of constant declaration";
     constexpr auto ExpectedOpeningQuote = "Expected ''' (single quote) at the beginning of constant declaration";
@@ -23,6 +24,7 @@ namespace SyntaxError {
     constexpr auto ExpectedExp = "Expected '$EXP' in complex number";
     constexpr auto ExpectedOpenParen = "Expected '(' after '$EXP' in complex number";
     constexpr auto ExpectedCloseParen = "Expected ')' after exponent in complex number";
+    constexpr auto UnexpectedEndOfFile = "Unexpected end of file";
 }
 
 struct SyntaxData {
@@ -33,6 +35,7 @@ struct SyntaxData {
 class Parser {
 private:
     const SymbolStore& symbols;
+    Logger<Error>& _logger;
 
     Stack<Token> tokens;
 
@@ -72,6 +75,11 @@ private:
     // 17. <unsigned-integer> --> <digit><digits-string>
     void parseUnsignedInteger();
 
+    void recoverFromParseProgramPanic(TreeNode<SyntaxData>& parentNode);
+    void recoverFromParseProcedureHeaderPanic(TreeNode<SyntaxData>& parentNode);
+    void recoverFromParseBlockPanic(TreeNode<SyntaxData>& parentNode);
+    void recoverFromParseConstantDeclarationPanic(TreeNode<SyntaxData>& node);
+
     Token expect(const std::string& expected, const std::string& errorMessage);
     Token expect(SymbolType expected, const std::string& errorMessage);
 
@@ -81,10 +89,10 @@ private:
     void panic(const std::string& message);
     void panic(const std::string& message, const Token& token);
 
-    void grow(const SyntaxData& data);
+    TreeNode<SyntaxData>& grow(const SyntaxData& data);
 
 public:
-    Parser(const SymbolStore& symbols, const std::vector<Token>& tokens);
+    Parser(const SymbolStore& symbols, const std::vector<Token>& tokens, Logger<Error>& logger);
 
     void parse();
     const Tree<SyntaxData>& tree() const;

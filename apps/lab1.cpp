@@ -1,5 +1,5 @@
 #include <FileSource.hpp>
-#include <Log.hpp>
+#include <Logger.hpp>
 #include <SymbolStore.hpp>
 #include <Table.hpp>
 #include <Tokenizer.hpp>
@@ -31,7 +31,12 @@ int main(int argc, char* argv[]) {
     FileSource source(argv[1]);
     SymbolStore symbols;
     CharacterAttributes attributes;
-    Tokenizer tokenizer(source, symbols, attributes);
+    Logger<Error> logger("Tokenizer", [](const auto& err) {
+        return std::format(
+            "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
+        );
+    });
+    Tokenizer tokenizer(source, symbols, attributes, logger);
     tokenizer.scan();
 
     Table("\nTokens", tokenizer.tokens())
@@ -57,14 +62,6 @@ int main(int argc, char* argv[]) {
             "Value", "{:<30}",
             [&](const auto& t) { return std::string(symbols.lookup(t.code)); }
         )
-        .print();
-
-    Log("Tokenizer", tokenizer.errors())
-        .setFormatter([](const auto& err) {
-            return std::format(
-                "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
-            );
-        })
         .print();
 
     Table("\nIdentifiers", symbols.identifiers())

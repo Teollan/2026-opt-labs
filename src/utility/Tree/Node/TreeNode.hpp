@@ -17,8 +17,11 @@ public:
     TreeNode& operator=(TreeNode&&) = default;
 
     const T& data() const;
+    T& data();
+
     const std::vector<std::unique_ptr<TreeNode<T>>>& children() const;
     TreeNode<T>& grow(T data);
+    void prune();
 };
 
 #include "TreeNode.tpp"

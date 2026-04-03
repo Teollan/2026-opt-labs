@@ -8,11 +8,13 @@
 Tokenizer::Tokenizer(
     Source& source,
     SymbolStore& symbols,
-    CharacterAttributes& attributes
+    CharacterAttributes& attributes,
+    Logger<Error>& logger
 ) :
     source(source),
     symbols(symbols),
     attributes(attributes),
+    _logger(logger),
     character(source.current()) {}
 
 void Tokenizer::scan() {
@@ -225,14 +227,10 @@ const std::vector<Token>& Tokenizer::tokens() const {
     return _tokens;
 }
 
-const std::vector<Error>& Tokenizer::errors() const {
-    return _errors;
-}
-
 void Tokenizer::addToken(const Token& token) {
     _tokens.push_back(token);
 }
 
 void Tokenizer::addError(const Error& error) {
-    _errors.push_back(error);
+    _logger.message(error);
 }

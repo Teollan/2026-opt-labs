@@ -3,8 +3,9 @@
 #include <stdexcept>
 #include <format>
 
-Parser::Parser(const SymbolStore& symbols, const std::vector<Token>& tokens) :
+Parser::Parser(const SymbolStore& symbols, const std::vector<Token>& tokens, Logger<Error>& logger) :
     symbols(symbols),
+    _logger(logger),
     tokens(Stack<Token>({tokens.rbegin(), tokens.rend()})),
     _tree(Tree<SyntaxData>({ .symbol = "<signal-program>", .rule = "S" })) {
     _nodeStack.push(&_tree.root());
@@ -16,27 +17,41 @@ void Parser::parse() {
 
 // 1. <signal-program> --> <program>
 void Parser::parseSignalProgram() {
-    grow({
+    auto& node = grow({
         .symbol = "<program>",
         .rule = "1",
     });
 
-    parseProgram();
+    try {
+        parseProgram();
+    } catch (const std::runtime_error& error) {
+        recoverFromParseProgramPanic(node);
+    }
 
     _nodeStack.pop();
 }
 
 // 2. <program> --> PROGRAM <procedure-identifier>; <block>.
 void Parser::parseProgram() {
-    grow({
+    auto& node = grow({
         .symbol = "PROGRAM <procedure-identifier>; <block>.",
         .rule = "2",
     });
 
-    expect(Keyword::Program, SyntaxError::MustStartWithProgram);
-    parseProcedureIdentifier();
-    expect(Delimiter::Semicolon, SyntaxError::ExpectedSemicolon);
-    parseBlock();
+    try {
+        expect(Keyword::Program, SyntaxError::MustStartWithProgram);
+        parseProcedureIdentifier();
+        expect(Delimiter::Semicolon, SyntaxError::ExpectedSemicolon);
+    } catch (const std::runtime_error& error) {
+        recoverFromParseProcedureHeaderPanic(node);
+    }
+    
+    try {
+        parseBlock();
+    } catch (const std::runtime_error& error) {
+        recoverFromParseBlockPanic(node);
+    }
+
     expect(Delimiter::Dot, SyntaxError::ExpectedDot);
 
     _nodeStack.pop();
@@ -106,12 +121,17 @@ void Parser::parseConstantDeclarationsList() {
     auto isEmpty = consider(Keyword::Begin);
 
     if (!isEmpty) {
-        grow({
+        auto& node = grow({
             .symbol = "<constant-declaration> <constant-declarations-list>",
             .rule = "7",
         });
 
-        parseConstantDeclaration();
+        try {
+            parseConstantDeclaration();
+        } catch (const std::runtime_error& error) {
+            recoverFromParseConstantDeclarationPanic(node);
+        }
+        
         parseConstantDeclarationsList();
     } else {
         grow({
@@ -276,6 +296,94 @@ void Parser::parseUnsignedInteger() {
     _nodeStack.pop();
 }
 
+void Parser::recoverFromParseProgramPanic(
+    TreeNode<SyntaxData>& parentNode
+) {
+    // If this is reached, the program is fucked
+    // Clear all tokens and pop all nodes until the root
+    tokens.clear();
+
+    _nodeStack.popUntil([&](TreeNode<SyntaxData>* node) {
+        return node == &parentNode;
+    });
+}
+
+void Parser::recoverFromParseProcedureHeaderPanic(
+    TreeNode<SyntaxData>& parentNode
+) {
+    // Pop tokens until we find a token to continue parsing from.
+    auto referenceToken = tokens.popUntil([&](const Token& token) {
+        const auto& symbol = symbols.lookup(token.code);
+
+        return symbol == Keyword::Const || symbol == Keyword::Begin;
+    });
+
+    // Popped all tokens but didn't find a reference,
+    // which means we reached the end of the file.
+    if (!referenceToken) {
+        panic(SyntaxError::UnexpectedEndOfFile);
+    }
+
+    // Clear the node stack until the parent node
+    _nodeStack.popUntil([&](TreeNode<SyntaxData>* node) {
+        return node == &parentNode;
+    });
+}
+
+void Parser::recoverFromParseBlockPanic(
+    TreeNode<SyntaxData>& parentNode
+) {
+    // Pop tokens until we find a token to continue parsing from.
+    auto referenceToken = tokens.popUntil([&](const Token& token) {
+        const auto& symbol = symbols.lookup(token.code);
+
+        return symbol == Keyword::End || symbol == Delimiter::Dot;
+    });
+
+    // Popped all tokens but didn't find a reference,
+    // which means we reached the end of the file.
+    if (!referenceToken) {
+        panic(SyntaxError::UnexpectedEndOfFile);
+    }
+
+    // If the safe token is an END keyword, we need to consume it
+    if (symbols.lookup(referenceToken->code) == Keyword::End) {
+        tokens.pop();
+    }
+
+    // Clear the node stack until the parent node
+    _nodeStack.popUntil([&](TreeNode<SyntaxData>* node) {
+        return node == &parentNode;
+    });
+}
+
+void Parser::recoverFromParseConstantDeclarationPanic(
+    TreeNode<SyntaxData>& parentNode
+) {
+    // Pop tokens until we find a token to continue parsing from.
+    auto referenceToken = tokens.popUntil([&](const Token& token) {
+        const auto& symbol = symbols.lookup(token.code);
+
+        return symbol == Delimiter::Semicolon || symbol == Keyword::Begin;
+    });
+
+    // Popped all tokens but didn't find a reference,
+    // which means we reached the end of the file.
+    if (!referenceToken) {
+        panic(SyntaxError::UnexpectedEndOfFile);
+    }
+
+    // If the safe token is a semicolon, we need to consume it
+    if (symbols.lookup(referenceToken->code) == Delimiter::Semicolon) {
+        referenceToken = tokens.pop();
+    }
+
+    // Clear the node stack until the parent node
+    _nodeStack.popUntil([&](TreeNode<SyntaxData>* node) {
+        return node == &parentNode;
+    });
+}
+
 Token Parser::expect(const std::string& expected, const std::string& errorMessage) {
     auto token = tokens.pop();
 
@@ -335,12 +443,20 @@ bool Parser::consider(SymbolType expected) {
 }
 
 void Parser::panic(const std::string& message) {
+    _logger.message({ .message = message, .row = 0, .column = 0 });
+
     throw std::runtime_error(message);
 }
 
 void Parser::panic(const std::string& message, const Token& token) {
+    _logger.message({
+        .message = message,
+        .row = token.row,
+        .column = token.column,
+    });
+
     throw std::runtime_error(
-        std::format("Error [{}:{}]: {}", token.row + 1, token.column + 1, message)
+        std::format("[{}:{}] {}", token.row + 1, token.column + 1, message)
     );
 }
 
@@ -348,10 +464,12 @@ const Tree<SyntaxData>& Parser::tree() const {
     return _tree;
 }
 
-void Parser::grow(const SyntaxData& data) {
+TreeNode<SyntaxData>& Parser::grow(const SyntaxData& data) {
     auto parentNode = _nodeStack.peek();
 
     auto& node = (*parentNode)->grow(data);
 
     _nodeStack.push(&node);
+
+    return node;
 }

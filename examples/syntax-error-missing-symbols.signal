@@ -1,0 +1,8 @@
+PROGRAM; (* Missing procedure identifier *)
+CONST 
+  X '42'; (* Missing '=' *)
+  Y = '24; (* Missing closing ''' (single quote) *)
+  = '23,45'; (* Missing constant identifier *)
+  Z = '54$EXP(32)' (* Missing ';' after constant *)
+(* Missing BEGIN keyword *)
+END (* Missing '.' after END *)

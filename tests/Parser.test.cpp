@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <format>
+
 #include <CharacterAttributes.hpp>
+#include <Logger.hpp>
 #include <Parser.hpp>
 #include <StringSource.hpp>
 #include <SymbolStore.hpp>
@@ -10,12 +13,30 @@ class ParserTest : public ::testing::Test {
 protected:
     SymbolStore symbols;
     CharacterAttributes attributes;
+    std::ostringstream logOutput;
+    Logger<Error> logger{"Tokenizer", [](const Error& err) {
+        return std::format(
+            "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
+        );
+    }, logOutput};
+
+    void SetUp() override {
+        logger.clear();
+        logOutput.str("");
+    }
+
+    void expectError(size_t index, const std::string& message) {
+        ASSERT_LT(index, logger.messages().size())
+            << "Error index " << index << " out of range";
+        EXPECT_EQ(logger.messages()[index].message, message)
+            << "Error " << index << " message mismatch";
+    }
 
     Parser makeParser(const std::string& input) {
         StringSource source(input);
-        Tokenizer tokenizer(source, symbols, attributes);
+        Tokenizer tokenizer(source, symbols, attributes, logger);
         tokenizer.scan();
-        return Parser(symbols, tokenizer.tokens());
+        return Parser(symbols, tokenizer.tokens(), logger);
     }
 };
 
@@ -290,4 +311,113 @@ TEST_F(ParserTest, ParsesExpOnlyConstant) {
 
     EXPECT_EQ(complexNum.children()[0]->data().symbol, "<empty>");
     EXPECT_EQ(complexNum.children()[1]->data().symbol, "$EXP( <unsigned-integer> )");
+}
+
+// --- Missing symbol errors ---
+
+TEST_F(ParserTest, LogsErrorForMissingProcedureIdentifier) {
+    auto parser = makeParser("PROGRAM; BEGIN END.");
+    parser.parse();
+
+    ASSERT_GE(logger.messages().size(), 1);
+    expectError(0, SyntaxError::ExpectedIdentifier); // TODO: update after implementing constext specific identifier error messages
+}
+
+TEST_F(ParserTest, LogsErrorForMissingEquals) {
+    auto parser = makeParser(
+        "PROGRAM TEST;\n"
+        "CONST\n"
+        "  X '42';\n"
+        "BEGIN\n"
+        "END."
+    );
+    parser.parse();
+
+    ASSERT_GE(logger.messages().size(), 1);
+    expectError(0, SyntaxError::ExpectedEquals);
+}
+
+TEST_F(ParserTest, LogsErrorForMissingClosingQuote) {
+    auto parser = makeParser(
+        "PROGRAM TEST;\n"
+        "CONST\n"
+        "  Y = '24;\n"
+        "BEGIN\n"
+        "END."
+    );
+    parser.parse();
+
+    ASSERT_GE(logger.messages().size(), 1);
+    expectError(0, SyntaxError::ExpectedClosingQuote);
+}
+
+TEST_F(ParserTest, LogsErrorForMissingConstantIdentifier) {
+    auto parser = makeParser(
+        "PROGRAM TEST;\n"
+        "CONST\n"
+        "  = '23,45';\n"
+        "BEGIN\n"
+        "END."
+    );
+    parser.parse();
+
+    ASSERT_GE(logger.messages().size(), 1);
+    expectError(0, SyntaxError::ExpectedIdentifier);
+}
+
+TEST_F(ParserTest, LogsErrorForMissingSemicolonAfterConstant) {
+    auto parser = makeParser(
+        "PROGRAM TEST;\n"
+        "CONST\n"
+        "  Z = '54$EXP(32)'\n"
+        "BEGIN\n"
+        "END."
+    );
+    parser.parse();
+
+    ASSERT_GE(logger.messages().size(), 1);
+    expectError(0, SyntaxError::ExpectedConstantSemicolon);
+}
+
+TEST_F(ParserTest, LogsErrorForMissingBeginKeyword) {
+    auto parser = makeParser(
+        "PROGRAM TEST;\n"
+        "END."
+    );
+    parser.parse();
+
+    ASSERT_GE(logger.messages().size(), 1);
+    expectError(0, SyntaxError::ExpectedBeginKeyword);
+}
+
+TEST_F(ParserTest, LogsErrorForMissingDot) {
+    auto parser = makeParser("PROGRAM TEST; BEGIN END");
+    parser.parse();
+
+    ASSERT_GE(logger.messages().size(), 1);
+    expectError(0, SyntaxError::ExpectedDot);
+}
+
+TEST_F(ParserTest, RecoverFromMissingEqualsAndContinues) {
+    auto parser = makeParser(
+        "PROGRAM TEST;\n"
+        "CONST\n"
+        "  X '42';\n"
+        "  Y = '1';\n"
+        "BEGIN\n"
+        "END."
+    );
+    parser.parse();
+
+    // First declaration fails, but second should still parse
+    ASSERT_GE(logger.messages().size(), 1);
+    expectError(0, SyntaxError::ExpectedEquals);
+
+    // Tree should still contain the second constant
+    auto& root = parser.tree().root();
+    auto& programBody = *root.children()[0]->children()[0];
+    auto& block = *programBody.children()[1];
+    auto& constDecls = *block.children()[0]->children()[0];
+    // Should have parsed at least some declarations
+    ASSERT_GE(constDecls.children().size(), 1);
 }

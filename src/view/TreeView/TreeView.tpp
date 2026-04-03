@@ -1,5 +1,6 @@
 template <typename T>
-TreeView<T>::TreeView(const Tree<T>& tree, std::ostream& out) :
+TreeView<T>::TreeView(std::string title, const Tree<T>& tree, std::ostream& out) :
+    _title(std::move(title)),
     _tree(tree),
     _out(out),
     _nodeFormatter(nullptr),
@@ -26,7 +27,8 @@ TreeView<T>& TreeView<T>::setEdgeFormatter(
 template <typename T>
 void TreeView<T>::print() const {
     auto& root = _tree.root();
-    
+
+    _out << _title << "\n";
     _out << _nodeFormatter(root.data()) << "\n";
 
     for (const auto& child : root.children()) {

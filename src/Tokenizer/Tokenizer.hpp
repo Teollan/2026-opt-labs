@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "CharacterAttributes.hpp"
+#include "Logger.hpp"
 #include "Source.hpp"
 #include "SymbolStore.hpp"
 
@@ -24,13 +25,13 @@ private:
     Source& source;
     SymbolStore& symbols;
     CharacterAttributes& attributes;
+    Logger<Error>& _logger;
 
     char character;
     std::string token;
     size_t code;
 
     std::vector<Token> _tokens;
-    std::vector<Error> _errors;
 
     void scanWhitespaces();
     void scanInteger();
@@ -44,7 +45,8 @@ public:
     Tokenizer(
         Source& source,
         SymbolStore& symbols,
-        CharacterAttributes& attributes
+        CharacterAttributes& attributes,
+        Logger<Error>& logger
     );
 
     void scan();
@@ -53,5 +55,4 @@ public:
     void addError(const Error& error);
 
     [[nodiscard]] const std::vector<Token>& tokens() const;
-    [[nodiscard]] const std::vector<Error>& errors() const;
 };

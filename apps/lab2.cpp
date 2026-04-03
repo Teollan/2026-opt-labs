@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include <FileSource.hpp>
-#include <Log.hpp>
+#include <Logger.hpp>
 #include <Parser.hpp>
 #include <SymbolStore.hpp>
 #include <Table.hpp>
@@ -20,22 +20,19 @@ int main(int argc, char* argv[]) {
     FileSource source(argv[1]);
     SymbolStore symbols;
     CharacterAttributes attributes;
-    Tokenizer tokenizer(source, symbols, attributes);
+    Logger<Error> logger("Parser", [](const auto& err) {
+        return std::format(
+            "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
+        );
+    });
+    Tokenizer tokenizer(source, symbols, attributes, logger);
     tokenizer.scan();
 
-    Log("Tokenizer", tokenizer.errors())
-        .setFormatter([](const auto& err) {
-            return std::format(
-                "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
-            );
-        })
-        .print();
-
-    Parser parser(symbols, tokenizer.tokens());
+    Parser parser(symbols, tokenizer.tokens(), logger);
     parser.parse();
 
-    TreeView<SyntaxData>(parser.tree())
-        .setNodeFormatter([](const auto& data) { return std::format("{}", data.symbol); })
+    TreeView<SyntaxData>("\nSyntax Tree", parser.tree())
+        .setNodeFormatter([](const auto& data) { return data.symbol; })
         .setEdgeFormatter([](const auto& data) { return std::format("({})", data.rule); })
         .print();
 
