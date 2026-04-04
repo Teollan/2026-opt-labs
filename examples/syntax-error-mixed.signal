@@ -1,0 +1,6 @@
+PROGRAM MIXED;
+CONST
+  X = '10@20'; (* '@' is an invalid character - tokenizer error *)
+  Y = '5$EXP(3)'; (* Valid constant - should parse fine *)
+BEGIN
+END.

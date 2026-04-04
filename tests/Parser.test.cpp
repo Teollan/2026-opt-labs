@@ -5,6 +5,7 @@
 #include <Parser.hpp>
 #include <StringSource.hpp>
 #include <SymbolStore.hpp>
+#include <SyntaxError.hpp>
 #include <Tokenizer.hpp>
 #include <format>
 
@@ -13,33 +14,45 @@ protected:
     SymbolStore symbols;
     CharacterAttributes attributes;
     std::ostringstream logOutput;
-    Logger<Error> logger{
+
+    Logger<Error> tokenizerLogger{
         "Tokenizer",
         [](const Error& err) {
             return std::format(
                 "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
             );
         },
-        logOutput
+        logOutput,
+    };
+
+    Logger<SyntaxError> parserLogger{
+        "Parser",
+        [](const SyntaxError& err) {
+            return std::format(
+                "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
+            );
+        },
+        logOutput,
     };
 
     void SetUp() override {
-        logger.clear();
+        tokenizerLogger.clear();
+        parserLogger.clear();
         logOutput.str("");
     }
 
     void expectError(size_t index, const std::string& message) {
-        ASSERT_LT(index, logger.messages().size())
+        ASSERT_LT(index, parserLogger.messages().size())
             << "Error index " << index << " out of range";
-        EXPECT_EQ(logger.messages()[index].message, message)
+        EXPECT_EQ(parserLogger.messages()[index].message, message)
             << "Error " << index << " message mismatch";
     }
 
     Parser makeParser(const std::string& input) {
         StringSource source(input);
-        Tokenizer tokenizer(source, symbols, attributes, logger);
+        Tokenizer tokenizer(source, symbols, attributes, tokenizerLogger);
         tokenizer.scan();
-        return Parser(symbols, tokenizer.tokens(), logger);
+        return Parser(symbols, tokenizer.tokens(), parserLogger);
     }
 };
 
@@ -325,11 +338,8 @@ TEST_F(ParserTest, LogsErrorForMissingProcedureIdentifier) {
     auto parser = makeParser("PROGRAM; BEGIN END.");
     parser.parse();
 
-    ASSERT_GE(logger.messages().size(), 1);
-    expectError(
-        0, SyntaxError::ExpectedIdentifier
-    );  // TODO: update after implementing constext specific identifier error
-        // messages
+    ASSERT_GE(parserLogger.messages().size(), 1);
+    expectError(0, SyntaxError::ExpectedProcedureIdentifier);
 }
 
 TEST_F(ParserTest, LogsErrorForMissingEquals) {
@@ -342,7 +352,7 @@ TEST_F(ParserTest, LogsErrorForMissingEquals) {
     );
     parser.parse();
 
-    ASSERT_GE(logger.messages().size(), 1);
+    ASSERT_GE(parserLogger.messages().size(), 1);
     expectError(0, SyntaxError::ExpectedEquals);
 }
 
@@ -356,7 +366,7 @@ TEST_F(ParserTest, LogsErrorForMissingClosingQuote) {
     );
     parser.parse();
 
-    ASSERT_GE(logger.messages().size(), 1);
+    ASSERT_GE(parserLogger.messages().size(), 1);
     expectError(0, SyntaxError::ExpectedClosingQuote);
 }
 
@@ -370,8 +380,8 @@ TEST_F(ParserTest, LogsErrorForMissingConstantIdentifier) {
     );
     parser.parse();
 
-    ASSERT_GE(logger.messages().size(), 1);
-    expectError(0, SyntaxError::ExpectedIdentifier);
+    ASSERT_GE(parserLogger.messages().size(), 1);
+    expectError(0, SyntaxError::ExpectedConstantIdentifier);
 }
 
 TEST_F(ParserTest, LogsErrorForMissingSemicolonAfterConstant) {
@@ -384,7 +394,7 @@ TEST_F(ParserTest, LogsErrorForMissingSemicolonAfterConstant) {
     );
     parser.parse();
 
-    ASSERT_GE(logger.messages().size(), 1);
+    ASSERT_GE(parserLogger.messages().size(), 1);
     expectError(0, SyntaxError::ExpectedConstantSemicolon);
 }
 
@@ -395,7 +405,7 @@ TEST_F(ParserTest, LogsErrorForMissingBeginKeyword) {
     );
     parser.parse();
 
-    ASSERT_GE(logger.messages().size(), 1);
+    ASSERT_GE(parserLogger.messages().size(), 1);
     expectError(0, SyntaxError::ExpectedBeginKeyword);
 }
 
@@ -403,7 +413,7 @@ TEST_F(ParserTest, LogsErrorForMissingDot) {
     auto parser = makeParser("PROGRAM TEST; BEGIN END");
     parser.parse();
 
-    ASSERT_GE(logger.messages().size(), 1);
+    ASSERT_GE(parserLogger.messages().size(), 1);
     expectError(0, SyntaxError::ExpectedDot);
 }
 
@@ -419,7 +429,7 @@ TEST_F(ParserTest, RecoverFromMissingEqualsAndContinues) {
     parser.parse();
 
     // First declaration fails, but second should still parse
-    ASSERT_GE(logger.messages().size(), 1);
+    ASSERT_GE(parserLogger.messages().size(), 1);
     expectError(0, SyntaxError::ExpectedEquals);
 
     // Tree should still contain the second constant
@@ -429,4 +439,236 @@ TEST_F(ParserTest, RecoverFromMissingEqualsAndContinues) {
     auto& constDecls = *block.children()[0]->children()[0];
     // Should have parsed at least some declarations
     ASSERT_GE(constDecls.children().size(), 1);
+}
+
+// --- Edge cases: empty and minimal inputs ---
+
+TEST_F(ParserTest, HandlesCompletelyEmptyInput) {
+    auto parser = makeParser("");
+    parser.parse();
+
+    ASSERT_GE(parserLogger.messages().size(), 1);
+    expectError(0, SyntaxError::MustStartWithProgram);
+}
+
+TEST_F(ParserTest, HandlesProgramKeywordOnly) {
+    auto parser = makeParser("PROGRAM");
+    parser.parse();
+
+    ASSERT_GE(parserLogger.messages().size(), 1);
+    expectError(0, SyntaxError::ExpectedProcedureIdentifier);
+}
+
+TEST_F(ParserTest, HandlesMinimalValidProgram) {
+    auto parser = makeParser("PROGRAM A; BEGIN END.");
+    parser.parse();
+
+    EXPECT_EQ(parserLogger.messages().size(), 0);
+}
+
+// --- Edge cases: constant values ---
+
+TEST_F(ParserTest, ParsesConstantWithBothParts) {
+    auto parser = makeParser(
+        "PROGRAM TEST;\n"
+        "CONST\n"
+        "  A = '10,20';\n"
+        "BEGIN\n"
+        "END."
+    );
+    parser.parse();
+
+    EXPECT_EQ(parserLogger.messages().size(), 0);
+
+    auto& root = parser.tree().root();
+    auto& programBody = *root.children()[0]->children()[0];
+    auto& block = *programBody.children()[1];
+    auto& decl =
+        *block.children()[0]->children()[0]->children()[0]->children()[0];
+    auto& complexNum = *decl.children()[1]->children()[0];
+
+    // Left part has unsigned integer
+    auto& leftPart = *complexNum.children()[0];
+    EXPECT_EQ(leftPart.data().symbol, "<unsigned-integer>");
+    ASSERT_EQ(leftPart.children().size(), 1);
+    EXPECT_EQ(leftPart.children()[0]->data().symbol, "10");
+
+    // Right part is comma variant with unsigned integer
+    auto& rightPart = *complexNum.children()[1];
+    EXPECT_EQ(rightPart.data().symbol, ",<unsigned-integer>");
+    ASSERT_EQ(rightPart.children().size(), 1);
+    EXPECT_EQ(rightPart.children()[0]->data().symbol, "20");
+}
+
+TEST_F(ParserTest, ParsesConstantWithExpAndLeftPart) {
+    auto parser = makeParser(
+        "PROGRAM TEST;\n"
+        "CONST\n"
+        "  A = '3$EXP(5)';\n"
+        "BEGIN\n"
+        "END."
+    );
+    parser.parse();
+
+    EXPECT_EQ(parserLogger.messages().size(), 0);
+
+    auto& root = parser.tree().root();
+    auto& programBody = *root.children()[0]->children()[0];
+    auto& block = *programBody.children()[1];
+    auto& decl =
+        *block.children()[0]->children()[0]->children()[0]->children()[0];
+    auto& complexNum = *decl.children()[1]->children()[0];
+
+    EXPECT_EQ(complexNum.children()[0]->data().symbol, "<unsigned-integer>");
+    EXPECT_EQ(
+        complexNum.children()[1]->data().symbol, "$EXP( <unsigned-integer> )"
+    );
+}
+
+// --- Edge cases: recovery behavior ---
+
+TEST_F(ParserTest, RecoverFromMissingSemicolonImplicitly) {
+    auto parser = makeParser(
+        "PROGRAM TEST;\n"
+        "CONST\n"
+        "  A = '1'\n"
+        "  B = '2';\n"
+        "BEGIN\n"
+        "END."
+    );
+    parser.parse();
+
+    // Missing semicolon after A should be reported
+    ASSERT_GE(parserLogger.messages().size(), 1);
+    expectError(0, SyntaxError::ExpectedConstantSemicolon);
+
+    // B should still parse successfully after implicit semicolon insertion
+    auto& root = parser.tree().root();
+    auto& programBody = *root.children()[0]->children()[0];
+    auto& block = *programBody.children()[1];
+    auto& constDecls = *block.children()[0]->children()[0];
+    auto& declList1 = *constDecls.children()[0];
+
+    // First declaration (A) should exist
+    ASSERT_GE(declList1.children().size(), 2);
+
+    // Second list entry should contain B
+    auto& declList2 = *declList1.children()[1];
+    ASSERT_GE(declList2.children().size(), 1);
+    auto& decl2 = *declList2.children()[0];
+    auto& ident2 = *decl2.children()[0]->children()[0];
+    EXPECT_EQ(ident2.data().symbol, "B");
+}
+
+TEST_F(ParserTest, RecoverFromMissingClosingQuoteAndContinues) {
+    auto parser = makeParser(
+        "PROGRAM TEST;\n"
+        "CONST\n"
+        "  A = '42;\n"
+        "  B = '99';\n"
+        "BEGIN\n"
+        "END."
+    );
+    parser.parse();
+
+    ASSERT_GE(parserLogger.messages().size(), 1);
+    expectError(0, SyntaxError::ExpectedClosingQuote);
+
+    // B should still parse after recovery
+    auto& root = parser.tree().root();
+    auto& programBody = *root.children()[0]->children()[0];
+    auto& block = *programBody.children()[1];
+    auto& constDecls = *block.children()[0]->children()[0];
+    ASSERT_GE(constDecls.children().size(), 1);
+}
+
+TEST_F(ParserTest, RecoverFromBadProcedureHeaderAndParseBlock) {
+    auto parser = makeParser(
+        "PROGRAM;\n"
+        "BEGIN\n"
+        "END."
+    );
+    parser.parse();
+
+    // Procedure identifier missing
+    ASSERT_GE(parserLogger.messages().size(), 1);
+    expectError(0, SyntaxError::ExpectedProcedureIdentifier);
+
+    // Block should still parse after header recovery
+    auto& root = parser.tree().root();
+    auto& programBody = *root.children()[0]->children()[0];
+    // Should have at least the block child
+    ASSERT_GE(programBody.children().size(), 1);
+}
+
+TEST_F(ParserTest, MultipleDeclarationErrorsRecoverIndependently) {
+    auto parser = makeParser(
+        "PROGRAM TEST;\n"
+        "CONST\n"
+        "  X '1';\n"
+        "  Y '2';\n"
+        "  Z = '3';\n"
+        "BEGIN\n"
+        "END."
+    );
+    parser.parse();
+
+    // Both X and Y should report missing '='
+    ASSERT_GE(parserLogger.messages().size(), 2);
+    expectError(0, SyntaxError::ExpectedEquals);
+    expectError(1, SyntaxError::ExpectedEquals);
+
+    // Z should still parse correctly
+    auto& root = parser.tree().root();
+    auto& programBody = *root.children()[0]->children()[0];
+    auto& block = *programBody.children()[1];
+    auto& constDecls = *block.children()[0]->children()[0];
+    ASSERT_GE(constDecls.children().size(), 1);
+}
+
+// --- Edge cases: unexpected end of file ---
+
+TEST_F(ParserTest, HandlesMissingEndAndDot) {
+    auto parser = makeParser(
+        "PROGRAM TEST;\n"
+        "BEGIN"
+    );
+    parser.parse();
+
+    ASSERT_GE(parserLogger.messages().size(), 1);
+}
+
+TEST_F(ParserTest, HandlesMissingBlockEntirely) {
+    auto parser = makeParser("PROGRAM TEST;");
+    parser.parse();
+
+    ASSERT_GE(parserLogger.messages().size(), 1);
+}
+
+// --- Edge cases: extraneous symbols ---
+
+TEST_F(ParserTest, LogsErrorForExtraTokensAfterDot) {
+    auto parser = makeParser("PROGRAM TEST; BEGIN END. EXTRA");
+    parser.parse();
+
+    ASSERT_GE(parserLogger.messages().size(), 1);
+    expectError(0, SyntaxError::UnexpectedSymbolsAfterEndOfProgram);
+}
+
+TEST_F(ParserTest, ParsesNoConstantsWithBeginDirectly) {
+    auto parser = makeParser(
+        "PROGRAM TEST;\n"
+        "BEGIN\n"
+        "END."
+    );
+    parser.parse();
+
+    EXPECT_EQ(parserLogger.messages().size(), 0);
+
+    auto& root = parser.tree().root();
+    auto& programBody = *root.children()[0]->children()[0];
+    auto& block = *programBody.children()[1];
+    auto& declarations = *block.children()[0];
+    auto& constDecls = *declarations.children()[0];
+    EXPECT_EQ(constDecls.data().symbol, "<empty>");
 }

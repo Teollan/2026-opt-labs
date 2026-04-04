@@ -1,0 +1,7 @@
+PROGRA TEST; (* Mangled 'PROGRAM' keyword *)
+CONST
+  A = '1,2';
+  B = '3' (* Missing ';' after constant *)
+  CONST = '4'; (* CONST keyword used as an identifier *)
+BEGIN
+eND. (* Mangled 'END' keyword *)

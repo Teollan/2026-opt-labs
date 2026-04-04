@@ -1,0 +1,9 @@
+CONST PROGRAM PRG; (* Extraneous CONST keyword in procedure declaration *)
+CONST
+  X == '42'; (* Extraneous '=' *)
+  Y = ''24'; (* Extraneous opening ''' (single quote) *)
+  Z = '54,$EXP(32)'; (* Extraneous ',' in constant *)
+  R R = '23,45'; (* Duplicate constant identifier *)
+  Q = '999';
+BEGIN
+END. PRG (* Extraneous identifier*)

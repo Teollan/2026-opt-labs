@@ -1,8 +1,14 @@
 #include "FileSource.hpp"
 
-FileSource::FileSource(const std::string& filePath) : 
+#include <stdexcept>
+
+FileSource::FileSource(const std::string& filePath) :
     file(filePath),
-    character(static_cast<char>(file.get())) {}
+    character(static_cast<char>(file.get())) {
+    if (!file.is_open()) {
+        throw std::runtime_error("Could not open file: " + filePath);
+    }
+}
 
 char FileSource::current() {
     return character;

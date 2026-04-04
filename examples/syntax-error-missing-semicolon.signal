@@ -1,0 +1,5 @@
+PROGRAM CALC;
+CONST
+  X = '42' (* Missing ';' after constant *)
+BEGIN
+END.

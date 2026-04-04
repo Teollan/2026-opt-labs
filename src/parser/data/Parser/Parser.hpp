@@ -1,23 +1,20 @@
 #pragma once
 
 #include <Logger.hpp>
+#include <ParsingScope.hpp>
 #include <Stack.hpp>
 #include <SymbolStore.hpp>
+#include <SyntaxData.hpp>
+#include <SyntaxError.hpp>
 #include <Tokenizer.hpp>
 #include <Tree.hpp>
-#include <parser.constants.hpp>
-
-struct SyntaxData {
-    std::string symbol;
-    std::string rule;
-};
 
 class Parser {
 private:
-    const SymbolStore& symbols;
-    Logger<Error>& _logger;
+    const SymbolStore& _symbols;
+    Logger<SyntaxError>& _logger;
 
-    Stack<Token> tokens;
+    Stack<Token> _tokenStack;
 
     Tree<SyntaxData> _tree;
     Stack<TreeNode<SyntaxData>*> _nodeStack;
@@ -54,14 +51,13 @@ private:
     // 14. <procedure-identifier> --> <identifier>
     void parseProcedureIdentifier();
     // 15. <identifier> --> <letter><string>
-    void parseIdentifier();
+    void parseIdentifier(const std::string& errorMessage);
     // 17. <unsigned-integer> --> <digit><digits-string>
     void parseUnsignedInteger();
 
-    void recoverFromParseProgramPanic(TreeNode<SyntaxData>& parentNode);
-    void recoverFromParseProcedureHeaderPanic(TreeNode<SyntaxData>& parentNode);
-    void recoverFromParseBlockPanic(TreeNode<SyntaxData>& parentNode);
-    void recoverFromParseConstantDeclarationPanic(TreeNode<SyntaxData>& node);
+    void skipToProcedureBody();
+    void skipToBlockEnd();
+    void skipToNextDeclaration();
 
     Token expect(const std::string& expected, const std::string& errorMessage);
     Token expect(SymbolType expected, const std::string& errorMessage);
@@ -69,16 +65,16 @@ private:
     bool consider(const std::string& expected);
     bool consider(SymbolType expected);
 
-    void panic(const std::string& message);
-    void panic(const std::string& message, const Token& token);
+    [[noreturn]] void fail(const std::string& message);
+    [[noreturn]] void fail(const std::string& message, const Token& token);
 
-    TreeNode<SyntaxData>& grow(const SyntaxData& data);
+    [[nodiscard]] ParsingScope grow(const SyntaxData& data);
 
 public:
     Parser(
         const SymbolStore& symbols,
         const std::vector<Token>& tokens,
-        Logger<Error>& logger
+        Logger<SyntaxError>& logger
     );
 
     void parse();

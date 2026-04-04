@@ -45,3 +45,10 @@ Key modules:
 - Header-only templates use `.tpp` extension (included at bottom of `.hpp`)
 - Headers use `#pragma once`
 - Private member variables use `_` prefix (e.g. `_data`, `_root`)
+- Prefer one field per line when constructing structs inline with designated initializers:
+  ```cpp
+  auto scope = grow({
+      .symbol = "<program>",
+      .rule = "1",
+  });
+  ```

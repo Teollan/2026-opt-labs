@@ -5,10 +5,12 @@
 #include <Logger.hpp>
 #include <Parser.hpp>
 #include <SymbolStore.hpp>
+#include <SyntaxError.hpp>
 #include <SyntaxTreeView.hpp>
 #include <TokensTableView.hpp>
 #include <Tokenizer.hpp>
 #include <format>
+#include <iostream>
 
 int main(int argc, char* argv[]) {
     SetConsoleOutputCP(CP_UTF8);
@@ -19,19 +21,22 @@ int main(int argc, char* argv[]) {
         .expectFlag("tree", "T")
         .parse();
 
-    SymbolStore symbols;
-    CharacterAttributes attributes;
-    
-    FileSource source(args.getString("source"));
-    Logger<Error> logger("Compiler", [](const auto& err) {
+    auto errorFormatter = [](const auto& err) {
         return std::format(
             "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
         );
-    });
-    Tokenizer tokenizer(source, symbols, attributes, logger);
+    };
+
+    SymbolStore symbols;
+    CharacterAttributes attributes;
+
+    FileSource source(args.getString("source"));
+    Logger<Error> tokenizerLogger("Tokenizer", errorFormatter);
+    Tokenizer tokenizer(source, symbols, attributes, tokenizerLogger);
     tokenizer.scan();
 
-    Parser parser(symbols, tokenizer.tokens(), logger);
+    Logger<SyntaxError> parserLogger("Parser", errorFormatter);
+    Parser parser(symbols, tokenizer.tokens(), parserLogger);
     parser.parse();
 
     if (args.getFlag("tokens")) {
