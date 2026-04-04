@@ -9,9 +9,9 @@ Parser::Parser(
 ) :
     _symbols(symbols),
     _logger(logger),
-    _tokenStack(Stack<Token>({tokens.rbegin(), tokens.rend()})),
+    _tokens(tokens),
     _tree(Tree<SyntaxData>({.symbol = "<signal-program>", .rule = "S"})) {
-    _nodeStack.push(&_tree.root());
+    _nodes.push(&_tree.root());
 }
 
 void Parser::parse() {
@@ -26,11 +26,11 @@ void Parser::parseSignalProgram() {
         parseProgram();
     } catch (const SyntaxError&) {
         // If parsing fails at the top level, we can't really recover, so we just clear the remaining tokens to prevent cascading errors.
-        _tokenStack.clear();
+        _tokens.clear();
     }
 
-    if (!_tokenStack.isEmpty()) {
-        auto token = _tokenStack.peek();
+    if (!_tokens.isEmpty()) {
+        auto token = _tokens.peek();
         
         _logger.message(SyntaxError(
             SyntaxError::UnexpectedSymbolsAfterEndOfProgram,
@@ -268,7 +268,7 @@ void Parser::parseUnsignedInteger() {
 // --- Error recovery ---
 
 void Parser::skipToProcedureBody() {
-    auto found = _tokenStack.popUntil([&](const Token& token) {
+    auto found = _tokens.popUntil([&](const Token& token) {
         const auto& symbol = _symbols.lookup(token.code);
         return symbol == Keyword::Const || symbol == Keyword::Begin;
     });
@@ -279,7 +279,7 @@ void Parser::skipToProcedureBody() {
 }
 
 void Parser::skipToBlockEnd() {
-    auto found = _tokenStack.popUntil([&](const Token& token) {
+    auto found = _tokens.popUntil([&](const Token& token) {
         const auto& symbol = _symbols.lookup(token.code);
         return symbol == Keyword::End || symbol == Delimiter::Dot;
     });
@@ -289,12 +289,12 @@ void Parser::skipToBlockEnd() {
     }
 
     if (_symbols.lookup(found->code) == Keyword::End) {
-        _tokenStack.pop();
+        _tokens.pop();
     }
 }
 
 void Parser::skipToNextDeclaration() {
-    auto found = _tokenStack.popUntil([&](const Token& token) {
+    auto found = _tokens.popUntil([&](const Token& token) {
         const auto& symbol = _symbols.lookup(token.code);
         return symbol == Delimiter::Semicolon || symbol == Keyword::Begin;
     });
@@ -304,7 +304,7 @@ void Parser::skipToNextDeclaration() {
     }
 
     if (_symbols.lookup(found->code) == Delimiter::Semicolon) {
-        _tokenStack.pop();
+        _tokens.pop();
     }
 }
 
@@ -314,7 +314,7 @@ Token Parser::expect(
     const std::string& expected,
     const std::string& errorMessage
 ) {
-    auto token = _tokenStack.peek();
+    auto token = _tokens.peek();
 
     if (!token) {
         fail(errorMessage);
@@ -324,11 +324,11 @@ Token Parser::expect(
         fail(errorMessage, *token);
     }
 
-    return *_tokenStack.pop();
+    return *_tokens.pop();
 }
 
 Token Parser::expect(SymbolType expected, const std::string& errorMessage) {
-    auto token = _tokenStack.peek();
+    auto token = _tokens.peek();
 
     if (!token) {
         fail(errorMessage);
@@ -338,17 +338,17 @@ Token Parser::expect(SymbolType expected, const std::string& errorMessage) {
         fail(errorMessage, *token);
     }
 
-    return *_tokenStack.pop();
+    return *_tokens.pop();
 }
 
 bool Parser::consider(const std::string& expected) {
-    auto token = _tokenStack.peek();
+    auto token = _tokens.peek();
 
     return token && _symbols.lookup(token->code) == expected;
 }
 
 bool Parser::consider(SymbolType expected) {
-    auto token = _tokenStack.peek();
+    auto token = _tokens.peek();
 
     return token && _symbols.lookupType(token->code) == expected;
 }
@@ -366,10 +366,10 @@ void Parser::fail(const std::string& message, const Token& token) {
 }
 
 ParsingScope Parser::grow(const SyntaxData& data) {
-    auto parentNode = _nodeStack.peek();
+    auto parentNode = _nodes.peek();
     auto& node = (*parentNode)->grow(data);
-    _nodeStack.push(&node);
-    return ParsingScope(_nodeStack);
+    _nodes.push(&node);
+    return ParsingScope(_nodes);
 }
 
 const Tree<SyntaxData>& Parser::tree() const {

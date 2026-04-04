@@ -2,6 +2,7 @@
 
 #include <Logger.hpp>
 #include <ParsingScope.hpp>
+#include <Queue.hpp>
 #include <Stack.hpp>
 #include <SymbolStore.hpp>
 #include <SyntaxData.hpp>
@@ -14,10 +15,10 @@ private:
     const SymbolStore& _symbols;
     Logger<SyntaxError>& _logger;
 
-    Stack<Token> _tokenStack;
+    Queue<Token> _tokens;
 
     Tree<SyntaxData> _tree;
-    Stack<TreeNode<SyntaxData>*> _nodeStack;
+    Stack<TreeNode<SyntaxData>*> _nodes;
 
     // 1. <signal-program> --> <program>
     void parseSignalProgram();
