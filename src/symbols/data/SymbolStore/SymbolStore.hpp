@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "Constants.hpp"
+#include "symbols.constants.hpp"
 
 enum class SymbolType {
     Ascii,

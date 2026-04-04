@@ -6,8 +6,8 @@
 #include <SymbolStore.hpp>
 #include <SyntaxTreeView.hpp>
 #include <Tokenizer.hpp>
-#include <iostream>
 #include <format>
+#include <iostream>
 
 int main(int argc, char* argv[]) {
     SetConsoleOutputCP(CP_UTF8);

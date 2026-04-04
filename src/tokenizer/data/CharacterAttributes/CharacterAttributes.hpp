@@ -2,7 +2,7 @@
 
 #include <array>
 
-#include "Constants.hpp"
+#include "symbols.constants.hpp"
 
 enum class Attribute {
     Whitespace,

@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
     TokensTableView("\nTokens", symbols, tokenizer.tokens()).print();
 
     IdentifiersTableView("\nIdentifiers", symbols.identifiers()).print();
-    
+
     LiteralsTableView("\nLiterals", symbols.literals()).print();
 
     return 0;
