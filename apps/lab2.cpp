@@ -19,9 +19,10 @@ int main(int argc, char* argv[]) {
         .expectFlag("tree", "T")
         .parse();
 
-    FileSource source(args.getString("source"));
     SymbolStore symbols;
     CharacterAttributes attributes;
+    
+    FileSource source(args.getString("source"));
     Logger<Error> logger("Compiler", [](const auto& err) {
         return std::format(
             "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
