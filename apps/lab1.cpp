@@ -1,5 +1,6 @@
 #include <windows.h>
 
+#include <Args.hpp>
 #include <FileSource.hpp>
 #include <IdentifiersTableView.hpp>
 #include <LiteralsTableView.hpp>
@@ -12,12 +13,14 @@
 int main(int argc, char* argv[]) {
     SetConsoleOutputCP(CP_UTF8);
 
-    if (argc < 2) {
-        std::cerr << "Usage: lab1 <filename>" << std::endl;
-        return 1;
-    }
+    Args args(argc, argv);
+    args.expectString("source", "s", true)
+        .expectFlag("tokens", "t")
+        .expectFlag("identifiers", "i")
+        .expectFlag("literals", "l")
+        .parse();
 
-    FileSource source(argv[1]);
+    FileSource source(args.getString("source"));
     SymbolStore symbols;
     CharacterAttributes attributes;
     Logger<Error> logger("Tokenizer", [](const auto& err) {
@@ -28,11 +31,19 @@ int main(int argc, char* argv[]) {
     Tokenizer tokenizer(source, symbols, attributes, logger);
     tokenizer.scan();
 
-    TokensTableView("\nTokens", symbols, tokenizer.tokens()).print();
+    if (args.getFlag("tokens")) {
+        TokensTableView("\nTokens", symbols, tokenizer.tokens()).print();
+    }
 
-    IdentifiersTableView("\nIdentifiers", symbols.identifiers()).print();
+    if (args.getFlag("identifiers")) {
+        IdentifiersTableView("\nIdentifiers", symbols.identifiers()).print();
+    }
 
-    LiteralsTableView("\nLiterals", symbols.literals()).print();
+    if (args.getFlag("literals")) {
+        LiteralsTableView("\nLiterals", symbols.literals()).print();
+    }
+
+    std::cout << "\nlab1.exe executed successfully.\n";
 
     return 0;
 }

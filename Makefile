@@ -11,13 +11,13 @@ run-lab-1: build
 ifndef FILE
 	$(error Usage: make run-lab-1 FILE=<filename>)
 endif
-	./build/apps/lab1 examples/$(FILE).signal
+	./build/apps/lab1 --source examples/$(FILE).signal -t -i -l
 
 run-lab-2: build
 ifndef FILE
 	$(error Usage: make run-lab-2 FILE=<filename>)
 endif
-	./build/apps/lab2 examples/$(FILE).signal
+	./build/apps/lab2 --source examples/$(FILE).signal -T
 
 SOURCES := $(wildcard apps/*.cpp tests/*.cpp src/*/*.cpp src/*/*.hpp src/*/*.tpp)
 
