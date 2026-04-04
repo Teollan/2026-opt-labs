@@ -4,10 +4,10 @@
 #include <Logger.hpp>
 #include <Parser.hpp>
 #include <SymbolStore.hpp>
-#include <Table.hpp>
+#include <SyntaxTreeView.hpp>
 #include <Tokenizer.hpp>
-#include <TreeView.hpp>
 #include <iostream>
+#include <format>
 
 int main(int argc, char* argv[]) {
     SetConsoleOutputCP(CP_UTF8);
@@ -31,12 +31,7 @@ int main(int argc, char* argv[]) {
     Parser parser(symbols, tokenizer.tokens(), logger);
     parser.parse();
 
-    TreeView<SyntaxData>("\nSyntax Tree", parser.tree())
-        .setNodeFormatter([](const auto& data) { return data.symbol; })
-        .setEdgeFormatter([](const auto& data) {
-            return std::format("({})", data.rule);
-        })
-        .print();
+    SyntaxTreeView("\nSyntax Tree", parser.tree()).print();
 
     return 0;
 }

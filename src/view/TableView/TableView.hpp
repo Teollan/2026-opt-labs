@@ -6,8 +6,10 @@
 #include <string>
 #include <vector>
 
+#include <Constants.hpp>
+
 template <typename T>
-class Table {
+class TableView {
 private:
     struct Column {
         std::string name;
@@ -15,21 +17,29 @@ private:
         std::function<std::string(const T&)> extractor;
     };
 
-    std::string name;
-    std::vector<T> data;
-    std::vector<Column> columns;
-    std::ostream& out;
+    std::string _title;
+    std::vector<T> _data;
+    std::vector<Column> _columns;
+    std::ostream& _out;
 
-    [[nodiscard]] std::string border() const;
+    [[nodiscard]] std::string border(
+        const std::string& left,
+        const std::string& junction,
+        const std::string& right
+    ) const;
     [[nodiscard]] std::string header() const;
     [[nodiscard]] std::string row(const T& item) const;
     [[nodiscard]] size_t columnWidth(const Column& col) const;
     static size_t parseWidth(const std::string& fmt);
 
 public:
-    Table(std::string name, std::vector<T> data, std::ostream& out = std::cout);
+    TableView(
+        std::string title,
+        std::vector<T> data,
+        std::ostream& out = std::cout
+    );
 
-    Table& addColumn(
+    TableView& addColumn(
         const std::string& colName,
         const std::string& format,
         std::function<std::string(const T&)> extractor
@@ -38,4 +48,4 @@ public:
     void print() const;
 };
 
-#include "Table.tpp"
+#include "TableView.tpp"

@@ -1,28 +1,17 @@
+#include <windows.h>
+
 #include <FileSource.hpp>
+#include <IdentifiersTableView.hpp>
+#include <LiteralsTableView.hpp>
 #include <Logger.hpp>
 #include <SymbolStore.hpp>
-#include <Table.hpp>
 #include <Tokenizer.hpp>
+#include <TokensTableView.hpp>
 #include <iostream>
 
-std::string getTypeLabel(SymbolType type) {
-    switch (type) {
-        case SymbolType::Ascii:
-            return "Delimiter";
-        case SymbolType::MultiDelimiter:
-            return "Multi-Delimiter";
-        case SymbolType::Keyword:
-            return "Keyword";
-        case SymbolType::Literal:
-            return "Literal";
-        case SymbolType::Identifier:
-            return "Identifier";
-        default:
-            return "N/A";
-    }
-}
-
 int main(int argc, char* argv[]) {
+    SetConsoleOutputCP(CP_UTF8);
+
     if (argc < 2) {
         std::cerr << "Usage: lab1 <filename>" << std::endl;
         return 1;
@@ -39,50 +28,11 @@ int main(int argc, char* argv[]) {
     Tokenizer tokenizer(source, symbols, attributes, logger);
     tokenizer.scan();
 
-    Table("\nTokens", tokenizer.tokens())
-        .addColumn(
-            "Code", "{:>5}",
-            [](const auto& t) { return std::to_string(t.code); }
-        )
-        .addColumn(
-            "Row", "{:>3}",
-            [](const auto& t) { return std::to_string(t.row + 1); }
-        )
-        .addColumn(
-            "Col", "{:>3}",
-            [](const auto& t) { return std::to_string(t.column + 1); }
-        )
-        .addColumn(
-            "Type", "{:<15}",
-            [&](const auto& t) {
-                return getTypeLabel(symbols.lookupType(t.code));
-            }
-        )
-        .addColumn(
-            "Value", "{:<30}",
-            [&](const auto& t) { return std::string(symbols.lookup(t.code)); }
-        )
-        .print();
+    TokensTableView("\nTokens", symbols, tokenizer.tokens()).print();
 
-    Table("\nIdentifiers", symbols.identifiers())
-        .addColumn(
-            "Code", "{:>5}",
-            [](const auto& pair) { return std::to_string(pair.second); }
-        )
-        .addColumn(
-            "Value", "{:<30}", [](const auto& pair) { return pair.first; }
-        )
-        .print();
-
-    Table("\nLiterals", symbols.literals())
-        .addColumn(
-            "Code", "{:>5}",
-            [](const auto& pair) { return std::to_string(pair.second); }
-        )
-        .addColumn(
-            "Value", "{:<30}", [](const auto& pair) { return pair.first; }
-        )
-        .print();
+    IdentifiersTableView("\nIdentifiers", symbols.identifiers()).print();
+    
+    LiteralsTableView("\nLiterals", symbols.literals()).print();
 
     return 0;
 }
