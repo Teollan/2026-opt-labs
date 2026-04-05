@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-University lab project: a compiler for the SIGNAL language (variant 6), written in C++20. Currently implements a tokenizer/lexer (lab1). The grammar is defined in `docs/Grammar.md`.
+University lab project: a compiler for the SIGNAL language (variant 6), written in C++20. Implements a tokenizer/lexer (lab1) and a recursive-descent parser (lab2). The grammar is defined in `docs/Grammar.md`.
 
 ## Build & Test Commands
 
@@ -24,7 +24,7 @@ cmake --build build --config Debug
 ctest --test-dir build --output-on-failure
 ```
 
-Binary location: `build/apps/lab1` (Unix) or `build/apps/Debug/lab1.exe` (Windows).
+Binary location: `build/apps/lab1` and `build/apps/lab2` (Unix) or `build/apps/lab1.exe` and `build/apps/lab2.exe` (Windows).
 
 ## Architecture
 
@@ -36,6 +36,12 @@ Key modules:
 - **Tokenizer** — lexical scanner; reads from a `Source`, produces tokens, stores symbols in `SymbolStore`
 - **SymbolStore** — symbol table holding keywords, delimiters, identifiers, and literals with numeric codes
 - **Constants** — predefined keyword/delimiter tables
+- **Parser** — recursive-descent syntax analyzer; builds a `Tree<SyntaxData>` parse tree from tokens; includes error recovery (panic mode + automatic semicolon insertion)
+- **SyntaxData** / **SyntaxError** — parse tree node data and syntax error representation
+- **Queue** / **Stack** — generic FIFO/LIFO containers used by the parser
+- **Tree** / **TreeNode** — generic tree structure for the parse tree
+- **SyntaxTreeView** — ASCII box-drawing tree renderer with rule numbers
+- **DotTreeView** — Graphviz DOT file exporter for parse trees
 - **Table** / **Log** — output formatting utilities
 
 ## Code Style
