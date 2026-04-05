@@ -1,6 +1,7 @@
 #include <windows.h>
 
 #include <Args.hpp>
+#include <DotTreeView.hpp>
 #include <FileSource.hpp>
 #include <IdentifiersTableView.hpp>
 #include <LiteralsTableView.hpp>
@@ -23,6 +24,7 @@ int main(int argc, char* argv[]) {
         .expectFlag("tree", "T")
         .expectFlag("identifiers", "i")
         .expectFlag("literals", "l")
+        .expectString("dot", "d", false)
         .parse();
 
     auto errorFormatter = [](const auto& err) {
@@ -57,6 +59,10 @@ int main(int argc, char* argv[]) {
 
     if (args.getFlag("tree")) {
         SyntaxTreeView("\nSyntax Tree", parser.tree()).print();
+    }
+
+    if (!args.getString("dot").empty()) {
+        DotTreeView(parser.tree()).write(args.getString("dot"));
     }
 
     return 0;
