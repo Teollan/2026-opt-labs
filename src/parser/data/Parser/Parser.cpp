@@ -25,7 +25,8 @@ void Parser::parseSignalProgram() {
     try {
         parseProgram();
     } catch (const SyntaxError&) {
-        // If parsing fails at the top level, we can't really recover, so we just clear the remaining tokens to prevent cascading errors.
+        // If parsing fails at the top level, we can't really recover,
+        // so we just clear the remaining tokens to prevent cascading errors.
         _tokens.clear();
     }
 

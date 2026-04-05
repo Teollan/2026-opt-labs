@@ -30,21 +30,3 @@ lint:
 
 clean:
 	rm -rf build
-
-pdf: build
-	@test -d .venv || python3 -m venv .venv
-	@.venv/bin/pip install -q pygments weasyprint
-	@.venv/bin/python scripts/sources-to-pdf.py "docs/Козлов КВ-33 ЛАБ1 Додаток 1.pdf"
-	@.venv/bin/python scripts/tests-to-pdf.py "docs/Козлов КВ-33 ЛАБ1 Додаток 2.pdf"
-
-module:
-ifndef NAME
-	$(error Usage: make module NAME=MyModule)
-endif
-	@mkdir -p src/$(NAME)
-	@printf '#pragma once\n\nclass $(NAME) {\nprivate:\n\npublic:\n    $(NAME)();\n};\n' > src/$(NAME)/$(NAME).hpp
-	@printf '#include "$(NAME).hpp"\n\n$(NAME)::$(NAME)() {}\n' > src/$(NAME)/$(NAME).cpp
-	@printf '#include <gtest/gtest.h>\n\n#include <$(NAME).hpp>\n\nclass $(NAME)Test : public ::testing::Test {\nprotected:\n};\n' > tests/$(NAME).test.cpp
-	@echo "Created src/$(NAME)/$(NAME).hpp"
-	@echo "Created src/$(NAME)/$(NAME).cpp"
-	@echo "Created tests/$(NAME).test.cpp"

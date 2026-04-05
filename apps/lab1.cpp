@@ -44,7 +44,5 @@ int main(int argc, char* argv[]) {
         LiteralsTableView("\nLiterals", symbols.literals()).print();
     }
 
-    std::cout << "\nlab1.exe executed successfully.\n";
-
     return 0;
 }

@@ -2,13 +2,15 @@
 
 #include <Args.hpp>
 #include <FileSource.hpp>
+#include <IdentifiersTableView.hpp>
+#include <LiteralsTableView.hpp>
 #include <Logger.hpp>
 #include <Parser.hpp>
 #include <SymbolStore.hpp>
 #include <SyntaxError.hpp>
 #include <SyntaxTreeView.hpp>
-#include <TokensTableView.hpp>
 #include <Tokenizer.hpp>
+#include <TokensTableView.hpp>
 #include <format>
 #include <iostream>
 
@@ -19,6 +21,8 @@ int main(int argc, char* argv[]) {
     args.expectString("source", "s", true)
         .expectFlag("tokens", "t")
         .expectFlag("tree", "T")
+        .expectFlag("identifiers", "i")
+        .expectFlag("literals", "l")
         .parse();
 
     auto errorFormatter = [](const auto& err) {
@@ -43,11 +47,17 @@ int main(int argc, char* argv[]) {
         TokensTableView("\nTokens", symbols, tokenizer.tokens()).print();
     }
 
+    if (args.getFlag("identifiers")) {
+        IdentifiersTableView("\nIdentifiers", symbols.identifiers()).print();
+    }
+
+    if (args.getFlag("literals")) {
+        LiteralsTableView("\nLiterals", symbols.literals()).print();
+    }
+
     if (args.getFlag("tree")) {
         SyntaxTreeView("\nSyntax Tree", parser.tree()).print();
     }
-
-    std::cout << "\nlab2.exe executed successfully.\n";
 
     return 0;
 }
