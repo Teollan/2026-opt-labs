@@ -1,5 +1,3 @@
-#include <windows.h>
-
 #include <Args.hpp>
 #include <FileSource.hpp>
 #include <IdentifiersTableView.hpp>
@@ -8,11 +6,8 @@
 #include <SymbolStore.hpp>
 #include <Tokenizer.hpp>
 #include <TokensTableView.hpp>
-#include <iostream>
 
 int main(int argc, char* argv[]) {
-    SetConsoleOutputCP(CP_UTF8);
-
     Args args(argc, argv);
     args.expectString("source", "s", true)
         .expectFlag("tokens", "t")

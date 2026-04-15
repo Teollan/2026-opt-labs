@@ -1,5 +1,3 @@
-#include <windows.h>
-
 #include <Args.hpp>
 #include <DotTreeView.hpp>
 #include <FileSource.hpp>
@@ -12,12 +10,8 @@
 #include <SyntaxTreeView.hpp>
 #include <Tokenizer.hpp>
 #include <TokensTableView.hpp>
-#include <format>
-#include <iostream>
 
 int main(int argc, char* argv[]) {
-    SetConsoleOutputCP(CP_UTF8);
-
     Args args(argc, argv);
     args.expectString("source", "s", true)
         .expectFlag("tokens", "t")
