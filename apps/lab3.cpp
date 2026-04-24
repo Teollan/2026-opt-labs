@@ -1,10 +1,12 @@
 #include <Args.hpp>
-#include <DotTreeView.hpp>
+#include <DeclarationsTableView.hpp>
 #include <FileSource.hpp>
 #include <IdentifiersTableView.hpp>
 #include <LiteralsTableView.hpp>
 #include <Logger.hpp>
 #include <Parser.hpp>
+#include <SemanticAnalyzer.hpp>
+#include <SemanticError.hpp>
 #include <SymbolStore.hpp>
 #include <SyntaxError.hpp>
 #include <SyntaxTreeView.hpp>
@@ -18,7 +20,7 @@ int main(int argc, char* argv[]) {
         .expectFlag("tree", "T")
         .expectFlag("identifiers", "i")
         .expectFlag("literals", "l")
-        .expectString("dot", "d", false)
+        .expectFlag("decl", "d")
         .parse();
 
     auto errorFormatter = [](const auto& err) {
@@ -39,6 +41,10 @@ int main(int argc, char* argv[]) {
     Parser parser(symbols, tokenizer.tokens(), parserLogger);
     parser.parse();
 
+    Logger<SemanticError> analyzerLogger("Semantics", errorFormatter);
+    SemanticAnalyzer semntics(symbols, parser.tree(), analyzerLogger);
+    semntics.analyze();
+
     if (args.getFlag("tokens")) {
         TokensTableView("\nTokens", symbols, tokenizer.tokens()).print();
     }
@@ -55,8 +61,9 @@ int main(int argc, char* argv[]) {
         SyntaxTreeView("\nSyntax Tree", parser.tree(), symbols).print();
     }
 
-    if (!args.getString("dot").empty()) {
-        DotTreeView(parser.tree(), symbols).write(args.getString("dot"));
+    if (args.getFlag("decl")) {
+        DeclarationsTableView("\nDeclarations", semntics.declarations())
+            .print();
     }
 
     return 0;

@@ -1,8 +1,11 @@
 #pragma once
 
-#include <string>
+#include <optional>
+
+#include <Rules.hpp>
+#include <Tokenizer.hpp>
 
 struct SyntaxData {
-    std::string symbol;
-    std::string rule;
+    RuleKey rule;
+    std::optional<Token> token;
 };

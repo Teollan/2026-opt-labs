@@ -1,0 +1,5 @@
+PROGRAM X;
+CONST
+  X = '42';
+BEGIN
+END.

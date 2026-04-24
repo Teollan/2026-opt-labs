@@ -3,6 +3,7 @@
 #include <CharacterAttributes.hpp>
 #include <Logger.hpp>
 #include <Parser.hpp>
+#include <Rules.hpp>
 #include <StringSource.hpp>
 #include <SymbolStore.hpp>
 #include <SyntaxError.hpp>
@@ -54,6 +55,10 @@ protected:
         tokenizer.scan();
         return Parser(symbols, tokenizer.tokens(), parserLogger);
     }
+
+    std::string tokenText(const TreeNode<SyntaxData>& node) {
+        return symbols.lookup(node.data().token->code);
+    }
 };
 
 // --- Empty program (no constants) ---
@@ -62,41 +67,38 @@ TEST_F(ParserTest, ParsesEmptyProgram) {
     auto parser = makeParser("PROGRAM EMPTY; BEGIN END.");
     parser.parse();
 
-    auto& root = parser.tree().root();
-    EXPECT_EQ(root.data().symbol, "<signal-program>");
-    EXPECT_EQ(root.data().rule, "S");
+    const auto& root = parser.tree().root();
+    EXPECT_EQ(root.data().rule, RuleKey::Axiom);
 
-    // Rule 1: <signal-program> --> <program>
-    auto& program = *root.children()[0];
-    EXPECT_EQ(program.data().rule, "1");
-    ASSERT_EQ(program.children().size(), 1);
+    // <signal-program> --> <program>
+    auto& signalProgram = *root.children()[0];
+    EXPECT_EQ(signalProgram.data().rule, RuleKey::SignalProgram);
+    ASSERT_EQ(signalProgram.children().size(), 1);
 
-    // Rule 2: PROGRAM <procedure-identifier>; <block>.
+    // <program> --> PROGRAM <procedure-identifier>; <block>.
     // 2 nonterminals: <procedure-identifier>, <block>
-    auto& programBody = *program.children()[0];
-    EXPECT_EQ(programBody.data().rule, "2");
-    ASSERT_EQ(programBody.children().size(), 2);
+    auto& program = *signalProgram.children()[0];
+    EXPECT_EQ(program.data().rule, RuleKey::Program);
+    ASSERT_EQ(program.children().size(), 2);
 
-    // Rule 3: <declarations> BEGIN <statements-list> END
+    // <block> --> <declarations> BEGIN <statements-list> END
     // 2 nonterminals: <declarations>, <statements-list>
-    auto& block = *programBody.children()[1];
-    EXPECT_EQ(block.data().rule, "3");
+    auto& block = *program.children()[1];
+    EXPECT_EQ(block.data().rule, RuleKey::Block);
     ASSERT_EQ(block.children().size(), 2);
 
-    // Rule 5: <declarations> --> <constant-declarations> — 1 nonterminal
+    // <declarations> --> <constant-declarations> — 1 nonterminal
     auto& declarations = *block.children()[0];
-    EXPECT_EQ(declarations.data().rule, "5");
+    EXPECT_EQ(declarations.data().rule, RuleKey::Declarations);
     ASSERT_EQ(declarations.children().size(), 1);
 
-    // Rule 6: <constant-declarations> --> <empty> — 0 nonterminals
+    // <constant-declarations> --> <empty>
     auto& constDecls = *declarations.children()[0];
-    EXPECT_EQ(constDecls.data().symbol, "<empty>");
-    EXPECT_EQ(constDecls.data().rule, "6");
+    EXPECT_EQ(constDecls.data().rule, RuleKey::ConstantDeclarationsEmpty);
 
-    // Rule 4: <statements-list> --> <empty> — 0 nonterminals
+    // <statements-list> --> <empty>
     auto& stmtList = *block.children()[1];
-    EXPECT_EQ(stmtList.data().symbol, "<empty>");
-    EXPECT_EQ(stmtList.data().rule, "4");
+    EXPECT_EQ(stmtList.data().rule, RuleKey::StatementsList);
 }
 
 // --- Basic program with one constant ---
@@ -111,56 +113,54 @@ TEST_F(ParserTest, ParsesProgramWithOneConstant) {
     );
     parser.parse();
 
-    auto& root = parser.tree().root();
-    auto& programBody = *root.children()[0]->children()[0];
-    auto& block = *programBody.children()[1];
+    const auto& root = parser.tree().root();
+    auto& program = *root.children()[0]->children()[0];
+    auto& block = *program.children()[1];
     auto& declarations = *block.children()[0];
 
-    // Rule 6: CONST <constant-declarations-list> — 1 nonterminal
+    // CONST <constant-declarations-list> — 1 nonterminal
     auto& constDecls = *declarations.children()[0];
-    EXPECT_EQ(constDecls.data().symbol, "CONST <constant-declarations-list>");
-    EXPECT_EQ(constDecls.data().rule, "6");
+    EXPECT_EQ(constDecls.data().rule, RuleKey::ConstantDeclarations);
     ASSERT_EQ(constDecls.children().size(), 1);
 
-    // Rule 7: <constant-declaration> <constant-declarations-list> — 2
-    // nonterminals
+    // <constant-declaration> <constant-declarations-list> — 2 nonterminals
     auto& declList = *constDecls.children()[0];
-    EXPECT_EQ(declList.data().rule, "7");
+    EXPECT_EQ(declList.data().rule, RuleKey::ConstantDeclarationsList);
     ASSERT_EQ(declList.children().size(), 2);
 
-    // Rule 8: <constant-identifier> = <constant>; — 2 nonterminals
+    // <constant-identifier> = <constant>; — 2 nonterminals
     auto& decl = *declList.children()[0];
-    EXPECT_EQ(decl.data().rule, "8");
+    EXPECT_EQ(decl.data().rule, RuleKey::ConstantDeclaration);
     ASSERT_EQ(decl.children().size(), 2);
 
-    // Rule 13 -> Rule 15: identifier = X
+    // ConstantIdentifier -> Terminal with identifier "X"
     auto& constId = *decl.children()[0];
-    EXPECT_EQ(constId.data().rule, "13");
+    EXPECT_EQ(constId.data().rule, RuleKey::ConstantIdentifier);
     auto& ident = *constId.children()[0];
-    EXPECT_EQ(ident.data().symbol, "X");
+    EXPECT_EQ(ident.data().rule, RuleKey::Terminal);
+    EXPECT_EQ(tokenText(ident), "X");
 
-    // Rule 9: '<complex-number>' — 1 nonterminal
+    // '<complex-number>' — 1 nonterminal
     auto& constant = *decl.children()[1];
-    EXPECT_EQ(constant.data().rule, "9");
+    EXPECT_EQ(constant.data().rule, RuleKey::Constant);
     ASSERT_EQ(constant.children().size(), 1);
 
-    // Rule 10: <left-part> <right-part> — 2 nonterminals
+    // <left-part> <right-part>
     auto& complexNum = *constant.children()[0];
-    EXPECT_EQ(complexNum.data().rule, "10");
+    EXPECT_EQ(complexNum.data().rule, RuleKey::ComplexNumber);
     ASSERT_EQ(complexNum.children().size(), 2);
 
-    // Rule 11: <left-part> --> <unsigned-integer>
+    // <left-part> --> <unsigned-integer>
     auto& leftPart = *complexNum.children()[0];
-    EXPECT_EQ(leftPart.data().symbol, "<unsigned-integer>");
+    EXPECT_EQ(leftPart.data().rule, RuleKey::LeftPartValue);
 
-    // Rule 12: <right-part> --> <empty>
+    // <right-part> --> <empty>
     auto& rightPart = *complexNum.children()[1];
-    EXPECT_EQ(rightPart.data().symbol, "<empty>");
+    EXPECT_EQ(rightPart.data().rule, RuleKey::RightPartEmpty);
 
-    // Rule 7: list ends with <empty>
+    // list ends with <empty>
     auto& declListEnd = *declList.children()[1];
-    EXPECT_EQ(declListEnd.data().symbol, "<empty>");
-    EXPECT_EQ(declListEnd.data().rule, "7");
+    EXPECT_EQ(declListEnd.data().rule, RuleKey::ConstantDeclarationsListEmpty);
 }
 
 // --- Constant with comma variant ---
@@ -175,23 +175,19 @@ TEST_F(ParserTest, ParsesConstantWithCommaVariant) {
     );
     parser.parse();
 
-    auto& root = parser.tree().root();
-    auto& programBody = *root.children()[0]->children()[0];
-    auto& block = *programBody.children()[1];
-    // declarations[0] -> constDecls[0] -> declList[0] -> decl
+    const auto& root = parser.tree().root();
+    auto& program = *root.children()[0]->children()[0];
+    auto& block = *program.children()[1];
     auto& decl =
         *block.children()[0]->children()[0]->children()[0]->children()[0];
-    // decl[1] = constant, constant[0] = complexNum
     auto& complexNum = *decl.children()[1]->children()[0];
 
     auto& leftPart = *complexNum.children()[0];
-    EXPECT_EQ(leftPart.data().symbol, "<unsigned-integer>");
-    EXPECT_EQ(leftPart.data().rule, "11");
+    EXPECT_EQ(leftPart.data().rule, RuleKey::LeftPartValue);
 
-    // Rule 12: ,<unsigned-integer> — 1 nonterminal
+    // ,<unsigned-integer> — 1 nonterminal (Terminal child)
     auto& rightPart = *complexNum.children()[1];
-    EXPECT_EQ(rightPart.data().symbol, ",<unsigned-integer>");
-    EXPECT_EQ(rightPart.data().rule, "12");
+    EXPECT_EQ(rightPart.data().rule, RuleKey::RightPartBase);
     ASSERT_EQ(rightPart.children().size(), 1);
 }
 
@@ -207,20 +203,19 @@ TEST_F(ParserTest, ParsesConstantWithExpVariant) {
     );
     parser.parse();
 
-    auto& root = parser.tree().root();
-    auto& programBody = *root.children()[0]->children()[0];
-    auto& block = *programBody.children()[1];
+    const auto& root = parser.tree().root();
+    auto& program = *root.children()[0]->children()[0];
+    auto& block = *program.children()[1];
     auto& decl =
         *block.children()[0]->children()[0]->children()[0]->children()[0];
     auto& complexNum = *decl.children()[1]->children()[0];
 
     auto& leftPart = *complexNum.children()[0];
-    EXPECT_EQ(leftPart.data().symbol, "<unsigned-integer>");
+    EXPECT_EQ(leftPart.data().rule, RuleKey::LeftPartValue);
 
-    // Rule 12: $EXP( <unsigned-integer> ) — 1 nonterminal
+    // $EXP( <unsigned-integer> ) — 1 nonterminal
     auto& rightPart = *complexNum.children()[1];
-    EXPECT_EQ(rightPart.data().symbol, "$EXP( <unsigned-integer> )");
-    EXPECT_EQ(rightPart.data().rule, "12");
+    EXPECT_EQ(rightPart.data().rule, RuleKey::RightPartExp);
     ASSERT_EQ(rightPart.children().size(), 1);
 }
 
@@ -236,15 +231,15 @@ TEST_F(ParserTest, ParsesEmptyComplexNumber) {
     );
     parser.parse();
 
-    auto& root = parser.tree().root();
-    auto& programBody = *root.children()[0]->children()[0];
-    auto& block = *programBody.children()[1];
+    const auto& root = parser.tree().root();
+    auto& program = *root.children()[0]->children()[0];
+    auto& block = *program.children()[1];
     auto& decl =
         *block.children()[0]->children()[0]->children()[0]->children()[0];
     auto& complexNum = *decl.children()[1]->children()[0];
 
-    EXPECT_EQ(complexNum.children()[0]->data().symbol, "<empty>");
-    EXPECT_EQ(complexNum.children()[1]->data().symbol, "<empty>");
+    EXPECT_EQ(complexNum.children()[0]->data().rule, RuleKey::LeftPartEmpty);
+    EXPECT_EQ(complexNum.children()[1]->data().rule, RuleKey::RightPartEmpty);
 }
 
 // --- Multiple constants ---
@@ -260,28 +255,28 @@ TEST_F(ParserTest, ParsesMultipleConstants) {
     );
     parser.parse();
 
-    auto& root = parser.tree().root();
-    auto& programBody = *root.children()[0]->children()[0];
-    auto& block = *programBody.children()[1];
+    const auto& root = parser.tree().root();
+    auto& program = *root.children()[0]->children()[0];
+    auto& block = *program.children()[1];
     auto& constDecls = *block.children()[0]->children()[0];
     auto& declList1 = *constDecls.children()[0];
-    EXPECT_EQ(declList1.data().rule, "7");
+    EXPECT_EQ(declList1.data().rule, RuleKey::ConstantDeclarationsList);
 
     // First constant: A
     auto& decl1 = *declList1.children()[0];
     auto& ident1 = *decl1.children()[0]->children()[0];
-    EXPECT_EQ(ident1.data().symbol, "A");
+    EXPECT_EQ(tokenText(ident1), "A");
 
     // Second list entry
     auto& declList2 = *declList1.children()[1];
-    EXPECT_EQ(declList2.data().rule, "7");
+    EXPECT_EQ(declList2.data().rule, RuleKey::ConstantDeclarationsList);
     auto& decl2 = *declList2.children()[0];
     auto& ident2 = *decl2.children()[0]->children()[0];
-    EXPECT_EQ(ident2.data().symbol, "B");
+    EXPECT_EQ(tokenText(ident2), "B");
 
     // List terminator
     auto& declList3 = *declList2.children()[1];
-    EXPECT_EQ(declList3.data().symbol, "<empty>");
+    EXPECT_EQ(declList3.data().rule, RuleKey::ConstantDeclarationsListEmpty);
 }
 
 // --- Comma-only right part (no left part) ---
@@ -296,15 +291,15 @@ TEST_F(ParserTest, ParsesCommaOnlyConstant) {
     );
     parser.parse();
 
-    auto& root = parser.tree().root();
-    auto& programBody = *root.children()[0]->children()[0];
-    auto& block = *programBody.children()[1];
+    const auto& root = parser.tree().root();
+    auto& program = *root.children()[0]->children()[0];
+    auto& block = *program.children()[1];
     auto& decl =
         *block.children()[0]->children()[0]->children()[0]->children()[0];
     auto& complexNum = *decl.children()[1]->children()[0];
 
-    EXPECT_EQ(complexNum.children()[0]->data().symbol, "<empty>");
-    EXPECT_EQ(complexNum.children()[1]->data().symbol, ",<unsigned-integer>");
+    EXPECT_EQ(complexNum.children()[0]->data().rule, RuleKey::LeftPartEmpty);
+    EXPECT_EQ(complexNum.children()[1]->data().rule, RuleKey::RightPartBase);
 }
 
 // --- $EXP-only (no left part) ---
@@ -319,17 +314,15 @@ TEST_F(ParserTest, ParsesExpOnlyConstant) {
     );
     parser.parse();
 
-    auto& root = parser.tree().root();
-    auto& programBody = *root.children()[0]->children()[0];
-    auto& block = *programBody.children()[1];
+    const auto& root = parser.tree().root();
+    auto& program = *root.children()[0]->children()[0];
+    auto& block = *program.children()[1];
     auto& decl =
         *block.children()[0]->children()[0]->children()[0]->children()[0];
     auto& complexNum = *decl.children()[1]->children()[0];
 
-    EXPECT_EQ(complexNum.children()[0]->data().symbol, "<empty>");
-    EXPECT_EQ(
-        complexNum.children()[1]->data().symbol, "$EXP( <unsigned-integer> )"
-    );
+    EXPECT_EQ(complexNum.children()[0]->data().rule, RuleKey::LeftPartEmpty);
+    EXPECT_EQ(complexNum.children()[1]->data().rule, RuleKey::RightPartExp);
 }
 
 // --- Missing symbol errors ---
@@ -433,9 +426,9 @@ TEST_F(ParserTest, RecoverFromMissingEqualsAndContinues) {
     expectError(0, SyntaxError::ExpectedEquals);
 
     // Tree should still contain the second constant
-    auto& root = parser.tree().root();
-    auto& programBody = *root.children()[0]->children()[0];
-    auto& block = *programBody.children()[1];
+    const auto& root = parser.tree().root();
+    auto& program = *root.children()[0]->children()[0];
+    auto& block = *program.children()[1];
     auto& constDecls = *block.children()[0]->children()[0];
     // Should have parsed at least some declarations
     ASSERT_GE(constDecls.children().size(), 1);
@@ -480,24 +473,24 @@ TEST_F(ParserTest, ParsesConstantWithBothParts) {
 
     EXPECT_EQ(parserLogger.messages().size(), 0);
 
-    auto& root = parser.tree().root();
-    auto& programBody = *root.children()[0]->children()[0];
-    auto& block = *programBody.children()[1];
+    const auto& root = parser.tree().root();
+    auto& program = *root.children()[0]->children()[0];
+    auto& block = *program.children()[1];
     auto& decl =
         *block.children()[0]->children()[0]->children()[0]->children()[0];
     auto& complexNum = *decl.children()[1]->children()[0];
 
-    // Left part has unsigned integer
+    // Left part has unsigned integer (Terminal child)
     auto& leftPart = *complexNum.children()[0];
-    EXPECT_EQ(leftPart.data().symbol, "<unsigned-integer>");
+    EXPECT_EQ(leftPart.data().rule, RuleKey::LeftPartValue);
     ASSERT_EQ(leftPart.children().size(), 1);
-    EXPECT_EQ(leftPart.children()[0]->data().symbol, "10");
+    EXPECT_EQ(tokenText(*leftPart.children()[0]), "10");
 
-    // Right part is comma variant with unsigned integer
+    // Right part is comma variant with unsigned integer (Terminal child)
     auto& rightPart = *complexNum.children()[1];
-    EXPECT_EQ(rightPart.data().symbol, ",<unsigned-integer>");
+    EXPECT_EQ(rightPart.data().rule, RuleKey::RightPartBase);
     ASSERT_EQ(rightPart.children().size(), 1);
-    EXPECT_EQ(rightPart.children()[0]->data().symbol, "20");
+    EXPECT_EQ(tokenText(*rightPart.children()[0]), "20");
 }
 
 TEST_F(ParserTest, ParsesConstantWithExpAndLeftPart) {
@@ -512,17 +505,15 @@ TEST_F(ParserTest, ParsesConstantWithExpAndLeftPart) {
 
     EXPECT_EQ(parserLogger.messages().size(), 0);
 
-    auto& root = parser.tree().root();
-    auto& programBody = *root.children()[0]->children()[0];
-    auto& block = *programBody.children()[1];
+    const auto& root = parser.tree().root();
+    auto& program = *root.children()[0]->children()[0];
+    auto& block = *program.children()[1];
     auto& decl =
         *block.children()[0]->children()[0]->children()[0]->children()[0];
     auto& complexNum = *decl.children()[1]->children()[0];
 
-    EXPECT_EQ(complexNum.children()[0]->data().symbol, "<unsigned-integer>");
-    EXPECT_EQ(
-        complexNum.children()[1]->data().symbol, "$EXP( <unsigned-integer> )"
-    );
+    EXPECT_EQ(complexNum.children()[0]->data().rule, RuleKey::LeftPartValue);
+    EXPECT_EQ(complexNum.children()[1]->data().rule, RuleKey::RightPartExp);
 }
 
 // --- Edge cases: recovery behavior ---
@@ -543,9 +534,9 @@ TEST_F(ParserTest, RecoverFromMissingSemicolonImplicitly) {
     expectError(0, SyntaxError::ExpectedConstantSemicolon);
 
     // B should still parse successfully after implicit semicolon insertion
-    auto& root = parser.tree().root();
-    auto& programBody = *root.children()[0]->children()[0];
-    auto& block = *programBody.children()[1];
+    const auto& root = parser.tree().root();
+    auto& program = *root.children()[0]->children()[0];
+    auto& block = *program.children()[1];
     auto& constDecls = *block.children()[0]->children()[0];
     auto& declList1 = *constDecls.children()[0];
 
@@ -557,7 +548,7 @@ TEST_F(ParserTest, RecoverFromMissingSemicolonImplicitly) {
     ASSERT_GE(declList2.children().size(), 1);
     auto& decl2 = *declList2.children()[0];
     auto& ident2 = *decl2.children()[0]->children()[0];
-    EXPECT_EQ(ident2.data().symbol, "B");
+    EXPECT_EQ(tokenText(ident2), "B");
 }
 
 TEST_F(ParserTest, RecoverFromMissingClosingQuoteAndContinues) {
@@ -575,9 +566,9 @@ TEST_F(ParserTest, RecoverFromMissingClosingQuoteAndContinues) {
     expectError(0, SyntaxError::ExpectedClosingQuote);
 
     // B should still parse after recovery
-    auto& root = parser.tree().root();
-    auto& programBody = *root.children()[0]->children()[0];
-    auto& block = *programBody.children()[1];
+    const auto& root = parser.tree().root();
+    auto& program = *root.children()[0]->children()[0];
+    auto& block = *program.children()[1];
     auto& constDecls = *block.children()[0]->children()[0];
     ASSERT_GE(constDecls.children().size(), 1);
 }
@@ -595,10 +586,10 @@ TEST_F(ParserTest, RecoverFromBadProcedureHeaderAndParseBlock) {
     expectError(0, SyntaxError::ExpectedProcedureIdentifier);
 
     // Block should still parse after header recovery
-    auto& root = parser.tree().root();
-    auto& programBody = *root.children()[0]->children()[0];
+    const auto& root = parser.tree().root();
+    auto& program = *root.children()[0]->children()[0];
     // Should have at least the block child
-    ASSERT_GE(programBody.children().size(), 1);
+    ASSERT_GE(program.children().size(), 1);
 }
 
 TEST_F(ParserTest, MultipleDeclarationErrorsRecoverIndependently) {
@@ -619,9 +610,9 @@ TEST_F(ParserTest, MultipleDeclarationErrorsRecoverIndependently) {
     expectError(1, SyntaxError::ExpectedEquals);
 
     // Z should still parse correctly
-    auto& root = parser.tree().root();
-    auto& programBody = *root.children()[0]->children()[0];
-    auto& block = *programBody.children()[1];
+    const auto& root = parser.tree().root();
+    auto& program = *root.children()[0]->children()[0];
+    auto& block = *program.children()[1];
     auto& constDecls = *block.children()[0]->children()[0];
     ASSERT_GE(constDecls.children().size(), 1);
 }
@@ -665,10 +656,10 @@ TEST_F(ParserTest, ParsesNoConstantsWithBeginDirectly) {
 
     EXPECT_EQ(parserLogger.messages().size(), 0);
 
-    auto& root = parser.tree().root();
-    auto& programBody = *root.children()[0]->children()[0];
-    auto& block = *programBody.children()[1];
+    const auto& root = parser.tree().root();
+    auto& program = *root.children()[0]->children()[0];
+    auto& block = *program.children()[1];
     auto& declarations = *block.children()[0];
     auto& constDecls = *declarations.children()[0];
-    EXPECT_EQ(constDecls.data().symbol, "<empty>");
+    EXPECT_EQ(constDecls.data().rule, RuleKey::ConstantDeclarationsEmpty);
 }

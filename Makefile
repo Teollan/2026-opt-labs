@@ -1,7 +1,10 @@
-.PHONY: build test run-lab-1 run-lab-2 lint format clean
+.PHONY: build test run-lab-1 run-lab-2 run-lab-3 lint format clean
+
+CXX := g++-14
+CC  := gcc-14
 
 build:
-	cmake -B build -DCMAKE_BUILD_TYPE=Debug
+	cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=$(CXX) -DCMAKE_C_COMPILER=$(CC)
 	cmake --build build
 
 test: build
@@ -19,13 +22,19 @@ ifndef FILE
 endif
 	./build/apps/lab2 --source examples/$(FILE).signal -T
 
+run-lab-3: build
+ifndef FILE
+	$(error Usage: make run-lab-3 FILE=<filename>)
+endif
+	./build/apps/lab3 --source examples/$(FILE).signal -d
+
 SOURCES := $(wildcard apps/*.cpp tests/*.cpp src/*/*.cpp src/*/*.hpp src/*/*.tpp)
 
 format:
 	clang-format -i $(SOURCES)
 
 lint:
-	cmake -B build -DCMAKE_CXX_CLANG_TIDY="clang-tidy" -DCMAKE_BUILD_TYPE=Debug
+	cmake -B build -DCMAKE_CXX_CLANG_TIDY="clang-tidy" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=$(CXX) -DCMAKE_C_COMPILER=$(CC)
 	cmake --build build --clean-first
 
 clean:

@@ -3,11 +3,11 @@ PROGRAM CONSTANTS;
 CONST
   (* Single-line comment *)
   A = '';
-  A = '1';
-  A = '2,3';
-  B = ',4';
-  B = '5$EXP(6)';
-  C = '$EXP(7)';
+  B = '1';
+  C = '2,3';
+  D = ',4';
+  E = '5$EXP(6)';
+  F = '$EXP(7)';
 BEGIN
   (*
     Multi-line comment

@@ -1,4 +1,12 @@
 cmake_minimum_required(VERSION 3.20)
+
+if(NOT DEFINED CMAKE_CXX_COMPILER AND NOT DEFINED ENV{CXX})
+    set(CMAKE_CXX_COMPILER g++-14)
+endif()
+if(NOT DEFINED CMAKE_C_COMPILER AND NOT DEFINED ENV{CC})
+    set(CMAKE_C_COMPILER gcc-14)
+endif()
+
 project(signal-compiler LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
