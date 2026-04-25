@@ -26,7 +26,7 @@ run-lab-3: build
 ifndef FILE
 	$(error Usage: make run-lab-3 FILE=<filename>)
 endif
-	./build/apps/lab3 --source examples/$(FILE).signal -d
+	./build/apps/lab3 --source examples/$(FILE).signal -d -o asm/$(FILE).asm
 
 SOURCES := $(wildcard apps/*.cpp tests/*.cpp src/*/*.cpp src/*/*.hpp src/*/*.tpp)
 
