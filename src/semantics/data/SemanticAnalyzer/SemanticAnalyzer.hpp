@@ -18,6 +18,7 @@ private:
 
     DeclarationsTable _declarations;
 
+    void analyzeNode(const TreeNode<SyntaxData>& node);
     void analyzeProgramDeclaration(const TreeNode<SyntaxData>& node);
     void analyzeConstantDeclaration(const TreeNode<SyntaxData>& node);
 

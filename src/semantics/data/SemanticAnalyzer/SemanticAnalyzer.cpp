@@ -3,7 +3,6 @@
 #include <Declaration.hpp>
 #include <Rules.hpp>
 #include <SemanticError.hpp>
-#include <Stack.hpp>
 #include <complex>
 #include <optional>
 #include <stdexcept>
@@ -18,27 +17,20 @@ SemanticAnalyzer::SemanticAnalyzer(
     _symbols(symbols), _tree(tree), _logger(logger) {}
 
 void SemanticAnalyzer::analyze() {
-    Stack<const TreeNode<SyntaxData>*> nodes;
-    nodes.push(&_tree.root());
+    analyzeNode(_tree.root());
+}
 
-    while (!nodes.isEmpty()) {
-        auto node = nodes.pop();
+void SemanticAnalyzer::analyzeNode(const TreeNode<SyntaxData>& node) {
+    const auto& data = node.data();
 
-        if (!node) {
-            continue;
-        }
+    if (data.rule == RuleKey::Program) {
+        analyzeProgramDeclaration(node);
+    } else if (data.rule == RuleKey::ConstantDeclaration) {
+        analyzeConstantDeclaration(node);
+    }
 
-        const auto& data = (*node)->data();
-
-        if (data.rule == RuleKey::Program) {
-            analyzeProgramDeclaration(**node);
-        } else if (data.rule == RuleKey::ConstantDeclaration) {
-            analyzeConstantDeclaration(**node);
-        }
-
-        for (const auto& child : (*node)->children()) {
-            nodes.push(&(*child));
-        }
+    for (const auto& child : node.children()) {
+        analyzeNode(*child);
     }
 }
 
