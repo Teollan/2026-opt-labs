@@ -49,12 +49,11 @@ void SemanticAnalyzer::analyzeProgramDeclaration(
             .modifiers = {},
         });
     } catch (const std::runtime_error&) {
-        SemanticError error(
-            SemanticError::DuplicateIdentifier(identifier),
-            identifierData.token->row, identifierData.token->column
-        );
-
-        _logger.message(error);
+        _logger.message({
+            .message = SemanticError::DuplicateIdentifier(identifier),
+            .row = identifierData.token->row,
+            .column = identifierData.token->column,
+        });
     }
 }
 
@@ -77,13 +76,11 @@ void SemanticAnalyzer::analyzeConstantDeclaration(
             .modifiers = {TypeModifier::Complex},
         });
     } catch (const std::runtime_error&) {
-        SemanticError error(
-            SemanticError::DuplicateIdentifier(identifier),
-            identifierNode->data().token->row,
-            identifierNode->data().token->column
-        );
-
-        _logger.message(error);
+        _logger.message({
+            .message = SemanticError::DuplicateIdentifier(identifier),
+            .row = identifierNode->data().token->row,
+            .column = identifierNode->data().token->column,
+        });
     }
 }
 

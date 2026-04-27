@@ -19,9 +19,9 @@ protected:
     CharacterAttributes attributes;
     std::ostringstream logOutput;
 
-    Logger<Error> tokenizerLogger{
+    Logger<LexicalError> tokenizerLogger{
         "Tokenizer",
-        [](const Error& err) {
+        [](const LexicalError& err) {
             return std::format(
                 "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
             );
@@ -71,7 +71,7 @@ protected:
     }
 
     static bool has(const std::string& output, const std::string& fragment) {
-        return output.find(fragment) != std::string::npos;
+        return output.contains(fragment);
     }
 
     static size_t pos(const std::string& output, const std::string& fragment) {
@@ -86,7 +86,7 @@ TEST_F(CodeGeneratorTest, TextSectionIsPresent) {
 }
 
 TEST_F(CodeGeneratorTest, EntryPointDeclaredGlobal) {
-    EXPECT_TRUE(has(compile("PROGRAM A; BEGIN END."), "global _start"));
+    EXPECT_TRUE(has(compile("PROGRAM A; BEGIN END."), "global  _start"));
 }
 
 TEST_F(CodeGeneratorTest, EntryPointHasStandaloneLabel) {

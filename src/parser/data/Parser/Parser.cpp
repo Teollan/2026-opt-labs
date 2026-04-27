@@ -34,10 +34,11 @@ void Parser::parseSignalProgram() {
     if (!_tokens.isEmpty()) {
         auto token = _tokens.peek();
 
-        _logger.message(SyntaxError(
-            SyntaxError::UnexpectedSymbolsAfterEndOfProgram, token->row,
-            token->column
-        ));
+        _logger.message({
+            .message = SyntaxError::UnexpectedSymbolsAfterEndOfProgram,
+            .row = token->row,
+            .column = token->column,
+        });
     }
 }
 
@@ -329,14 +330,20 @@ bool Parser::consider(SymbolType expected) {
 }
 
 void Parser::fail(const std::string& message) {
-    SyntaxError error(message, 0, 0);
+    SyntaxError error{.message = message, .row = 0, .column = 0};
+
     _logger.message(error);
+
     throw error;
 }
 
 void Parser::fail(const std::string& message, const Token& token) {
-    SyntaxError error(message, token.row, token.column);
+    SyntaxError error{
+        .message = message, .row = token.row, .column = token.column
+    };
+
     _logger.message(error);
+
     throw error;
 }
 

@@ -3,32 +3,22 @@
 #include <vector>
 
 #include "CharacterAttributes.hpp"
+#include "LexicalError.hpp"
 #include "Logger.hpp"
 #include "Source.hpp"
 #include "SymbolStore.hpp"
-
-struct Token {
-    size_t code;
-    size_t row;
-    size_t column;
-};
-
-struct Error {
-    std::string message;
-    size_t row;
-    size_t column;
-};
+#include "Token.hpp"
 
 class Tokenizer {
 private:
-    Source& source;
-    SymbolStore& symbols;
-    CharacterAttributes& attributes;
-    Logger<Error>& _logger;
+    Source& _source;
+    SymbolStore& _symbols;
+    CharacterAttributes& _attributes;
+    Logger<LexicalError>& _logger;
 
-    char character;
-    std::string token;
-    size_t code;
+    char _character;
+    std::string _token;
+    size_t _code;
 
     std::vector<Token> _tokens;
 
@@ -45,13 +35,13 @@ public:
         Source& source,
         SymbolStore& symbols,
         CharacterAttributes& attributes,
-        Logger<Error>& logger
+        Logger<LexicalError>& logger
     );
 
     void scan();
 
     void addToken(const Token& token);
-    void addError(const Error& error);
+    void addError(const LexicalError& error);
 
     [[nodiscard]] const std::vector<Token>& tokens() const;
 };

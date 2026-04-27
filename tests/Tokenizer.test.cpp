@@ -12,9 +12,9 @@ protected:
     SymbolStore symbols;
     CharacterAttributes attributes;
     std::ostringstream logOutput;
-    Logger<Error> logger{
+    Logger<LexicalError> logger{
         "Tokenizer",
-        [](const Error& err) {
+        [](const LexicalError& err) {
             return std::format(
                 "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
             );

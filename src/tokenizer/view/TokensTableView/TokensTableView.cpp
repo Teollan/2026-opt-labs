@@ -1,7 +1,5 @@
 #include "TokensTableView.hpp"
 
-#include <format>
-
 std::string getTypeLabel(SymbolType type) {
     switch (type) {
         case SymbolType::Ascii:
@@ -28,28 +26,25 @@ TokensTableView::TokensTableView(
     _table
         .addColumn(
             "Code", "{:>5}",
-            [](const auto& t) { return std::to_string(t.code); }
+            [](const auto& token) { return std::to_string(token.code); }
         )
         .addColumn(
             "Row", "{:>3}",
-            [](const auto& t) { return std::to_string(t.row + 1); }
+            [](const auto& token) { return std::to_string(token.row + 1); }
         )
         .addColumn(
             "Col", "{:>3}",
-            [](const auto& t) { return std::to_string(t.column + 1); }
+            [](const auto& token) { return std::to_string(token.column + 1); }
         )
         .addColumn(
             "Type", "{:<15}",
-            [&symbols](const auto& t) {
-                return getTypeLabel(symbols.lookupType(t.code));
+            [&symbols](const auto& token) {
+                return getTypeLabel(symbols.lookupType(token.code));
             }
         )
-        .addColumn(
-            "Value", "{:<30}",
-            [&symbols](const auto& t) {
-                return std::string(symbols.lookup(t.code));
-            }
-        );
+        .addColumn("Value", "{:<30}", [&symbols](const auto& token) {
+            return std::string(symbols.lookup(token.code));
+        });
 }
 
 void TokensTableView::print() const {

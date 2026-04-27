@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
     CharacterAttributes attributes;
 
     FileSource source(args.getString("source"));
-    Logger<Error> tokenizerLogger("Tokenizer", errorFormatter);
+    Logger<LexicalError> tokenizerLogger("Tokenizer", errorFormatter);
     Tokenizer tokenizer(source, symbols, attributes, tokenizerLogger);
     tokenizer.scan();
 

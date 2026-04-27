@@ -7,7 +7,7 @@
 #include <variant>
 
 CodeGenerator::CodeGenerator(const DeclarationsTable& declarations) :
-    _declarations(declarations) {}
+    _declarations(declarations.entries()) {}
 
 void CodeGenerator::generate() {
     _out.str("");
@@ -18,9 +18,8 @@ void CodeGenerator::generate() {
 }
 
 void CodeGenerator::emitDataSection() {
-    const auto entries = _declarations.entries();
     const bool hasConstants =
-        std::ranges::any_of(entries, [](const Declaration& declaration) {
+        std::ranges::any_of(_declarations, [](const Declaration& declaration) {
             return declaration.kind == DeclarationKind::Constant;
         });
 
@@ -31,7 +30,7 @@ void CodeGenerator::emitDataSection() {
     emitAssemblyLine({.instruction = "section", .operands = ".data"});
     emitEmptyLine();
 
-    for (const auto& decl : entries) {
+    for (const auto& decl : _declarations) {
         if (decl.kind == DeclarationKind::Constant) {
             emitConstant(decl);
         }
@@ -89,8 +88,6 @@ void CodeGenerator::emitConstant(const Declaration& decl) {
 }
 
 void CodeGenerator::emitTextSection() {
-    const auto program = findProgramName();
-
     emitAssemblyLine({.instruction = "section", .operands = ".text"});
     emitAssemblyLine({.instruction = "global", .operands = "_start"});
     emitEmptyLine();
@@ -128,7 +125,7 @@ void CodeGenerator::emitAssemblyLine(const AssemblyLine& line) {
             _out << line.instruction;
         }
     } else if (needsInstructionPadding) {
-        _out << std::format("{:<8s} ", "");
+        _out << std::format("{:<8s}", "");
     }
 
     if (hasOperands) {
@@ -138,7 +135,7 @@ void CodeGenerator::emitAssemblyLine(const AssemblyLine& line) {
             _out << line.operands;
         }
     } else if (needsOperandsPadding) {
-        _out << std::format("{:<16s} ", "");
+        _out << std::format("{:<16s}", "");
     }
 
     if (hasComment) {
@@ -150,20 +147,6 @@ void CodeGenerator::emitAssemblyLine(const AssemblyLine& line) {
 
 void CodeGenerator::emitEmptyLine() {
     _out << "\n";
-}
-
-std::string CodeGenerator::findProgramName() {
-    const auto entries = _declarations.entries();
-    const auto programNameIterator =
-        std::ranges::find_if(entries, [](const Declaration& decl) {
-            return decl.kind == DeclarationKind::Program;
-        });
-
-    if (programNameIterator == entries.end()) {
-        return "main";
-    }
-
-    return programNameIterator->identifier;
 }
 
 std::string CodeGenerator::output() const {

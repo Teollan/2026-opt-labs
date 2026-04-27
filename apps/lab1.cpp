@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
     CharacterAttributes attributes;
 
     FileSource source(args.getString("source"));
-    Logger<Error> logger("Tokenizer", [](const auto& err) {
+    Logger<LexicalError> logger("Tokenizer", [](const auto& err) {
         return std::format(
             "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
         );

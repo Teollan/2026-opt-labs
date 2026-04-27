@@ -16,9 +16,9 @@ protected:
     CharacterAttributes attributes;
     std::ostringstream logOutput;
 
-    Logger<Error> tokenizerLogger{
+    Logger<LexicalError> tokenizerLogger{
         "Tokenizer",
-        [](const Error& err) {
+        [](const LexicalError& err) {
             return std::format(
                 "Error [{}:{}]: {}", err.row + 1, err.column + 1, err.message
             );

@@ -1,7 +1,5 @@
 #include "Tokenizer.hpp"
 
-#include <format>
-
 #include "CharacterAttributes.hpp"
 
 // Automata state: START
@@ -9,18 +7,18 @@ Tokenizer::Tokenizer(
     Source& source,
     SymbolStore& symbols,
     CharacterAttributes& attributes,
-    Logger<Error>& logger
+    Logger<LexicalError>& logger
 ) :
-    source(source),
-    symbols(symbols),
-    attributes(attributes),
+    _source(source),
+    _symbols(symbols),
+    _attributes(attributes),
     _logger(logger),
-    character(source.current()) {}
+    _character(source.current()) {}
 
 void Tokenizer::scan() {
     // Automata state: LOOP
-    while (!source.done()) {
-        switch (attributes.lookup(character)) {
+    while (!_source.done()) {
+        switch (_attributes.lookup(_character)) {
             // Automata state: WHITESPACE
             case Attribute::Whitespace:
                 scanWhitespaces();
@@ -61,112 +59,112 @@ void Tokenizer::scan() {
 }
 
 void Tokenizer::scanWhitespaces() {
-    while (!source.done() &&
-           attributes.lookup(character) == Attribute::Whitespace) {
-        character = source.read();
+    while (!_source.done() &&
+           _attributes.lookup(_character) == Attribute::Whitespace) {
+        _character = _source.read();
     }
 }
 
 void Tokenizer::scanInteger() {
-    while (!source.done() && attributes.lookup(character) == Attribute::Digit) {
-        token += character;
-        character = source.read();
+    while (!_source.done() && _attributes.lookup(_character) == Attribute::Digit) {
+        _token += _character;
+        _character = _source.read();
     };
 
     // Automata state: WRITE
-    code = symbols.resolveLiteral(token);
+    _code = _symbols.resolveLiteral(_token);
 
     addToken({
-        .code = code,
-        .row = source.cursor().row(),
-        .column = source.cursor().column() -
-                  token.length(),  // Point to first character of the token
+        .code = _code,
+        .row = _source.cursor().row(),
+        .column = _source.cursor().column() -
+                  _token.length(),  // Point to first character of the token
     });
 
-    token.clear();
+    _token.clear();
 }
 
 void Tokenizer::scanString() {
-    while (!source.done() &&
-           (attributes.lookup(character) == Attribute::Letter ||
-            attributes.lookup(character) == Attribute::Digit)) {
-        token += character;
-        character = source.read();
+    while (!_source.done() &&
+           (_attributes.lookup(_character) == Attribute::Letter ||
+            _attributes.lookup(_character) == Attribute::Digit)) {
+        _token += _character;
+        _character = _source.read();
     }
 
     // Automata state: WRITE
-    if (symbols.isKeyword(token)) {
-        code = symbols.resolveKeyword(token);
+    if (_symbols.isKeyword(_token)) {
+        _code = _symbols.resolveKeyword(_token);
     } else {
-        code = symbols.resolveIdentifier(token);
+        _code = _symbols.resolveIdentifier(_token);
     }
 
     addToken({
-        .code = code,
-        .row = source.cursor().row(),
-        .column = source.cursor().column() -
-                  token.length(),  // Point to first character of the token
+        .code = _code,
+        .row = _source.cursor().row(),
+        .column = _source.cursor().column() -
+                  _token.length(),  // Point to first character of the token
     });
 
-    token.clear();
+    _token.clear();
 }
 
 void Tokenizer::scanMultiDelimiter() {
-    size_t startRow = source.cursor().row();
-    size_t startCol = source.cursor().column();
+    size_t startRow = _source.cursor().row();
+    size_t startCol = _source.cursor().column();
 
-    token += character;
-    character = source.read();
+    _token += _character;
+    _character = _source.read();
 
-    if (source.done() || attributes.lookup(character) != Attribute::Letter) {
+    if (_source.done() || _attributes.lookup(_character) != Attribute::Letter) {
         addError({
-            .message = std::format("Invalid use of '$'"),
+            .message = LexicalError::InvalidMultiDelimiter(_token),
             .row = startRow,
             .column = startCol,
         });
 
-        token.clear();
+        _token.clear();
 
         return;
     }
 
-    while (!source.done() &&
-           (attributes.lookup(character) == Attribute::Letter)) {
-        token += character;
-        character = source.read();
+    while (!_source.done() &&
+           (_attributes.lookup(_character) == Attribute::Letter)) {
+        _token += _character;
+        _character = _source.read();
     }
 
-    if (!symbols.isMultiDelimiter(token)) {
+    if (!_symbols.isMultiDelimiter(_token)) {
         addError({
-            .message = std::format("Invalid use of '$'"),
+            .message = LexicalError::InvalidMultiDelimiter(_token),
             .row = startRow,
             .column = startCol,
         });
 
-        token.clear();
+        _token.clear();
         return;
     }
 
-    code = symbols.resolveMultiDelimiter(token);
+    _code = _symbols.resolveMultiDelimiter(_token);
 
     // Automata state: WRITE
     addToken({
-        .code = code,
+        .code = _code,
         .row = startRow,
         .column = startCol,
     });
 
-    token.clear();
+    _token.clear();
 }
 
 void Tokenizer::scanComment() {
-    size_t startRow = source.cursor().row();
-    size_t startCol = source.cursor().column();
+    size_t startRow = _source.cursor().row();
+    size_t startCol = _source.cursor().column();
 
-    character = source.read();
+    _character = _source.read();
 
     // Automata state: WRITE
-    if (character != '*') {
+    if (_character != '*') {
         addToken({
             .code = static_cast<size_t>('('),
             .row = startRow,
@@ -176,28 +174,28 @@ void Tokenizer::scanComment() {
         return;
     }
 
-    character = source.read();
+    _character = _source.read();
 
     // Automata state: COMMENT
-    while (!source.done()) {
+    while (!_source.done()) {
         // Automata state: COMMENT_CLOSE
-        if (character == '*') {
-            character = source.read();
+        if (_character == '*') {
+            _character = _source.read();
 
             // Automata state: COMMENT_END
-            if (character == ')') {
-                character = source.read();
+            if (_character == ')') {
+                _character = _source.read();
 
                 return;
             }
         } else {
-            character = source.read();
+            _character = _source.read();
         }
     }
 
     // Automata state: ERROR
     addError({
-        .message = "Comment not closed",
+        .message = LexicalError::UnclosedComment(),
         .row = startRow,
         .column = startCol,
     });
@@ -205,22 +203,22 @@ void Tokenizer::scanComment() {
 
 void Tokenizer::scanDelimiter() {
     addToken({
-        .code = static_cast<size_t>(character),
-        .row = source.cursor().row(),
-        .column = source.cursor().column(),
+        .code = static_cast<size_t>(_character),
+        .row = _source.cursor().row(),
+        .column = _source.cursor().column(),
     });
 
-    character = source.read();
+    _character = _source.read();
 }
 
 void Tokenizer::scanInvalid() {
     addError({
-        .message = std::format("Invalid character \'{}\'", character),
-        .row = source.cursor().row(),
-        .column = source.cursor().column(),
+        .message = LexicalError::InvalidCharacter(_character),
+        .row = _source.cursor().row(),
+        .column = _source.cursor().column(),
     });
 
-    character = source.read();
+    _character = _source.read();
 }
 
 const std::vector<Token>& Tokenizer::tokens() const {
@@ -231,6 +229,6 @@ void Tokenizer::addToken(const Token& token) {
     _tokens.push_back(token);
 }
 
-void Tokenizer::addError(const Error& error) {
+void Tokenizer::addError(const LexicalError& error) {
     _logger.message(error);
 }

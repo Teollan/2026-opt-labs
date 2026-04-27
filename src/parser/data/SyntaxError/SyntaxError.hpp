@@ -1,15 +1,12 @@
 #pragma once
 
 #include <cstddef>
-#include <stdexcept>
 #include <string>
 
-struct SyntaxError : std::runtime_error {
+struct SyntaxError {
     std::string message;
     size_t row;
     size_t column;
-
-    SyntaxError(std::string message, size_t row, size_t column);
 
     // Error message constants
     static constexpr auto MustStartWithProgram =

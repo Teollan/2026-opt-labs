@@ -13,7 +13,7 @@ struct AssemblyLine {
 
 class CodeGenerator {
 private:
-    const DeclarationsTable& _declarations;
+    std::vector<Declaration> _declarations;
     std::ostringstream _out;
 
     void emitDataSection();
@@ -21,8 +21,6 @@ private:
     void emitConstant(const Declaration& decl);
     void emitAssemblyLine(const AssemblyLine& line);
     void emitEmptyLine();
-
-    std::string findProgramName();
 
 public:
     explicit CodeGenerator(const DeclarationsTable& declarations);
