@@ -25,4 +25,5 @@ public:
     void visitRootNode(const RootNode& node) override;
     void visitProgramNode(const ProgramNode& node) override;
     void visitConstantDeclarationNode(const ConstantNode& node) override;
+    void visitStatementsNode(const StatementsNode& node) override;
 };

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <AbstractSyntaxTree.hpp>
+#include <AssemblyFormatter.hpp>
 #include <CharacterAttributes.hpp>
 #include <CodeGenerator.hpp>
 #include <Logger.hpp>
@@ -60,15 +61,23 @@ protected:
 
     std::string compile(const std::string& input) {
         StringSource source(input);
+
         Tokenizer tokenizer(source, symbols, attributes, tokenizerLogger);
         tokenizer.scan();
+
         Parser parser(symbols, tokenizer.tokens(), parserLogger);
         parser.parse();
+
         AbstractSyntaxTree ast(parser.tree(), symbols);
+
         SemanticAnalyzer analyzer(ast, analyzerLogger);
         analyzer.analyze();
-        CodeGenerator codegen(ast);
+
+        AssemblyFormatter assemblyFormatter(0, 0, 0);
+
+        CodeGenerator codegen(ast, assemblyFormatter);
         codegen.generate();
+
         return codegen.output();
     }
 
@@ -88,7 +97,7 @@ TEST_F(CodeGeneratorTest, TextSectionIsPresent) {
 }
 
 TEST_F(CodeGeneratorTest, EntryPointDeclaredGlobal) {
-    EXPECT_TRUE(has(compile("PROGRAM A; BEGIN END."), "global  _start"));
+    EXPECT_TRUE(has(compile("PROGRAM A; BEGIN END."), "global _start"));
 }
 
 TEST_F(CodeGeneratorTest, EntryPointHasStandaloneLabel) {

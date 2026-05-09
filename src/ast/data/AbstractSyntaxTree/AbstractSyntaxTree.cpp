@@ -14,6 +14,7 @@ AbstractSyntaxTree::AbstractSyntaxTree(
 ) :
     _symbols(symbols) {
     root = std::make_unique<RootNode>();
+
     foldAxiom(tree.root());
 }
 
@@ -24,6 +25,7 @@ void AbstractSyntaxTree::accept(AstVisitor& visitor) const {
 void AbstractSyntaxTree::foldAxiom(const TreeNode<SyntaxData>& node) {
     const auto& signalProgram = *node.children()[0];
     const auto& program = *signalProgram.children()[0];
+
     root->program = foldProgram(program);
 }
 
@@ -35,6 +37,7 @@ std::unique_ptr<ProgramNode> AbstractSyntaxTree::foldProgram(
     const auto& procedureIdentifier = *node.children()[0];
     const auto& identifierTerminal = *procedureIdentifier.children()[0];
     const auto& identifierToken = *identifierTerminal.data().token;
+
     program->identifier = _symbols.lookup(identifierToken.code);
     program->row = identifierToken.row;
     program->column = identifierToken.column;
@@ -50,7 +53,9 @@ void AbstractSyntaxTree::foldBlock(
     ProgramNode& program
 ) {
     const auto& declarations = *node.children()[0];
+
     foldDeclarations(declarations, program);
+    program.statements = std::make_unique<StatementsNode>();
 }
 
 void AbstractSyntaxTree::foldDeclarations(
@@ -91,6 +96,7 @@ std::unique_ptr<ConstantNode> AbstractSyntaxTree::foldConstantDeclaration(
     const auto& constantIdentifier = *node.children()[0];
     const auto& identifierTerminal = *constantIdentifier.children()[0];
     const auto& identifierToken = *identifierTerminal.data().token;
+
     constant->identifier = _symbols.lookup(identifierToken.code);
     constant->row = identifierToken.row;
     constant->column = identifierToken.column;
@@ -103,6 +109,7 @@ std::unique_ptr<ConstantNode> AbstractSyntaxTree::foldConstantDeclaration(
 
 Value AbstractSyntaxTree::evaluateConstant(const TreeNode<SyntaxData>& node) {
     const auto& complexNumber = *node.children()[0];
+
     return evaluateComplexNumber(complexNumber);
 }
 
@@ -127,10 +134,12 @@ Value AbstractSyntaxTree::evaluateComplexNumber(
     if (rightPart.data().rule == RuleKey::RightPartExp) {
         auto magnitude = std::stof(leftPartStr.value_or("1"));
         auto exponent = std::stof(rightPartStr.value_or("0"));
+
         return Value{std::polar(magnitude, exponent)};
     }
 
     auto real = std::stoi(leftPartStr.value_or("0"));
     auto imaginary = std::stoi(rightPartStr.value_or("0"));
+
     return Value{std::complex<int>{real, imaginary}};
 }

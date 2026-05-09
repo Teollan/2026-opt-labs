@@ -8,6 +8,8 @@ public:
         const class ConstantNode& node
     ) = 0;
 
+    virtual void visitStatementsNode(const class StatementsNode& node) = 0;
+
     virtual void visitProgramNode(const class ProgramNode& node) = 0;
 
     virtual void visitRootNode(const class RootNode& node) = 0;

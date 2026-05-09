@@ -71,6 +71,8 @@ void SemanticAnalyzer::visitProgramNode(const ProgramNode& node) {
     }
 }
 
+void SemanticAnalyzer::visitStatementsNode(const StatementsNode&) {}
+
 void SemanticAnalyzer::visitConstantDeclarationNode(const ConstantNode& node) {
     try {
         _declarations.declare({

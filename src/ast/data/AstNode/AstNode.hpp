@@ -24,10 +24,16 @@ public:
     void accept(class AstVisitor& visitor) override;
 };
 
+class StatementsNode : public AstNode {
+public:
+    void accept(class AstVisitor& visitor) override;
+};
+
 class ProgramNode : public AstNode {
 public:
     std::string identifier;
     std::vector<std::unique_ptr<ConstantNode>> constants;
+    std::unique_ptr<StatementsNode> statements;
     size_t row = 0;
     size_t column = 0;
 

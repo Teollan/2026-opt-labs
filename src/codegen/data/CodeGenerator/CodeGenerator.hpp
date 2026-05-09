@@ -1,33 +1,28 @@
 #pragma once
 
 #include <AbstractSyntaxTree.hpp>
+#include <AssemblyFormatter.hpp>
 #include <AstNode.hpp>
 #include <AstVisitor.hpp>
 #include <sstream>
 #include <string>
 
-struct AssemblyLine {
-    std::string label = "";
-    std::string instruction = "";
-    std::string operands = "";
-    std::string comment = "";
-};
-
 class CodeGenerator : public AstVisitor {
 private:
     const AbstractSyntaxTree& _ast;
+    const AssemblyFormatter& _formatter;
     std::ostringstream _out;
-
-    void emitTextSection();
-    void emitAssemblyLine(const AssemblyLine& line);
-    void emitEmptyLine();
 
     void visitRootNode(const RootNode& node) override;
     void visitProgramNode(const ProgramNode& node) override;
     void visitConstantDeclarationNode(const ConstantNode& node) override;
+    void visitStatementsNode(const StatementsNode& node) override;
 
 public:
-    explicit CodeGenerator(const AbstractSyntaxTree& ast);
+    explicit CodeGenerator(
+        const AbstractSyntaxTree& ast,
+        const AssemblyFormatter& formatter
+    );
 
     void generate();
     [[nodiscard]] std::string output() const;

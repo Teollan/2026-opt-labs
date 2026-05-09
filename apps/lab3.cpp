@@ -80,7 +80,9 @@ int main(int argc, char* argv[]) {
                            !analyzerLogger.messages().empty();
 
     if (!hasErrors) {
-        CodeGenerator codegen(ast);
+        AssemblyFormatter assemblyFormatter(8, 8, 16);
+
+        CodeGenerator codegen(ast, assemblyFormatter);
         codegen.generate();
 
         const auto outputPath = args.getString("output");
