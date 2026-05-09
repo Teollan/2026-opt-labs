@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <AbstractSyntaxTree.hpp>
 #include <CharacterAttributes.hpp>
 #include <CodeGenerator.hpp>
 #include <Logger.hpp>
@@ -63,9 +64,10 @@ protected:
         tokenizer.scan();
         Parser parser(symbols, tokenizer.tokens(), parserLogger);
         parser.parse();
-        SemanticAnalyzer analyzer(symbols, parser.tree(), analyzerLogger);
+        AbstractSyntaxTree ast(parser.tree(), symbols);
+        SemanticAnalyzer analyzer(ast, analyzerLogger);
         analyzer.analyze();
-        CodeGenerator codegen(analyzer.declarations());
+        CodeGenerator codegen(ast);
         codegen.generate();
         return codegen.output();
     }

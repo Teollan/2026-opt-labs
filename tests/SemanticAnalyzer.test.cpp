@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <AbstractSyntaxTree.hpp>
 #include <CharacterAttributes.hpp>
 #include <Declaration.hpp>
 #include <DeclarationsTable.hpp>
@@ -64,12 +65,18 @@ protected:
 
     AnalysisResult analyze(const std::string& input) {
         StringSource source(input);
+
         Tokenizer tokenizer(source, symbols, attributes, tokenizerLogger);
         tokenizer.scan();
+
         Parser parser(symbols, tokenizer.tokens(), parserLogger);
         parser.parse();
-        SemanticAnalyzer analyzer(symbols, parser.tree(), analyzerLogger);
+
+        AbstractSyntaxTree ast(parser.tree(), symbols);
+
+        SemanticAnalyzer analyzer(ast, analyzerLogger);
         analyzer.analyze();
+
         return {
             .errors = analyzerLogger.messages(),
             .declarations = analyzer.declarations(),
@@ -150,8 +157,8 @@ TEST_F(SemanticAnalyzerTest, DuplicateConstantErrorPointsToSecondDeclaration) {
     auto [errors, _] = analyze(
         "PROGRAM TEST;\n"  // row 0
         "CONST\n"          // row 1
-        "  X = '1';\n"    // row 2 — first declaration, accepted
-        "  X = '2';\n"    // row 3, col 2  <-- duplicate, reported
+        "  X = '1';\n"     // row 2 — first declaration, accepted
+        "  X = '2';\n"     // row 3, col 2  <-- duplicate, reported
         "BEGIN END."
     );
     ASSERT_EQ(errors.size(), 1u);
@@ -196,9 +203,9 @@ TEST_F(SemanticAnalyzerTest, ConstantNamedAfterProgramErrorNamesTheIdentifier) {
 
 TEST_F(SemanticAnalyzerTest, ConstantNamedAfterProgramErrorPointsToConstant) {
     auto [errors, _] = analyze(
-        "PROGRAM HELLO;\n"  // row 0
-        "CONST\n"           // row 1
-        "  HELLO = '42';\n" // row 2, col 2  <-- reported
+        "PROGRAM HELLO;\n"   // row 0
+        "CONST\n"            // row 1
+        "  HELLO = '42';\n"  // row 2, col 2  <-- reported
         "BEGIN END."
     );
     ASSERT_EQ(errors.size(), 1u);
@@ -225,8 +232,8 @@ TEST_F(SemanticAnalyzerTest, MultipleRedefinitionsNameCorrectIdentifiers) {
         "PROGRAM HELLO;\n"
         "CONST\n"
         "  X = '1';\n"
-        "  X = '2';\n"       // duplicate X reported first (source order)
-        "  HELLO = '3,4';\n" // duplicate HELLO reported second
+        "  X = '2';\n"        // duplicate X reported first (source order)
+        "  HELLO = '3,4';\n"  // duplicate HELLO reported second
         "BEGIN END."
     );
     ASSERT_EQ(errors.size(), 2u);

@@ -1,3 +1,4 @@
+#include <AbstractSyntaxTree.hpp>
 #include <Args.hpp>
 #include <CodeGenerator.hpp>
 #include <DeclarationsTableView.hpp>
@@ -47,8 +48,10 @@ int main(int argc, char* argv[]) {
     Parser parser(symbols, tokenizer.tokens(), parserLogger);
     parser.parse();
 
+    AbstractSyntaxTree ast(parser.tree(), symbols);
+
     Logger<SemanticError> analyzerLogger("Semantics", errorFormatter);
-    SemanticAnalyzer semantics(symbols, parser.tree(), analyzerLogger);
+    SemanticAnalyzer semantics(ast, analyzerLogger);
     semantics.analyze();
 
     if (args.getFlag("tokens")) {
@@ -77,7 +80,7 @@ int main(int argc, char* argv[]) {
                            !analyzerLogger.messages().empty();
 
     if (!hasErrors) {
-        CodeGenerator codegen(semantics.declarations());
+        CodeGenerator codegen(ast);
         codegen.generate();
 
         const auto outputPath = args.getString("output");

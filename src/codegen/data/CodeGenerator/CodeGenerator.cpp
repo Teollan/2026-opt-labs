@@ -1,89 +1,72 @@
 #include "CodeGenerator.hpp"
 
-#include <Declaration.hpp>
-#include <algorithm>
 #include <complex>
 #include <format>
+#include <type_traits>
 #include <variant>
 
-CodeGenerator::CodeGenerator(const DeclarationsTable& declarations) :
-    _declarations(declarations.entries()) {}
+CodeGenerator::CodeGenerator(const AbstractSyntaxTree& ast) : _ast(ast) {}
 
 void CodeGenerator::generate() {
     _out.str("");
     _out.clear();
 
-    emitDataSection();
+    _ast.accept(*this);
+}
+
+void CodeGenerator::visitRootNode(const RootNode& node) {
+    if (node.program) {
+        node.program->accept(*this);
+    }
+}
+
+void CodeGenerator::visitProgramNode(const ProgramNode& node) {
+    if (!node.constants.empty()) {
+        emitAssemblyLine({.instruction = "section", .operands = ".data"});
+        emitEmptyLine();
+
+        for (const auto& constant : node.constants) {
+            constant->accept(*this);
+        }
+
+        emitEmptyLine();
+    }
+
     emitTextSection();
 }
 
-void CodeGenerator::emitDataSection() {
-    const bool hasConstants =
-        std::ranges::any_of(_declarations, [](const Declaration& declaration) {
-            return declaration.kind == DeclarationKind::Constant;
-        });
-
-    if (!hasConstants) {
-        return;
-    }
-
-    emitAssemblyLine({.instruction = "section", .operands = ".data"});
-    emitEmptyLine();
-
-    for (const auto& decl : _declarations) {
-        if (decl.kind == DeclarationKind::Constant) {
-            emitConstant(decl);
-        }
-    }
-
-    emitEmptyLine();
-}
-
-void CodeGenerator::emitConstant(const Declaration& decl) {
-    if (!decl.value.has_value()) {
-        return;
-    }
-
+void CodeGenerator::visitConstantDeclarationNode(const ConstantNode& node) {
     std::visit(
         [&](const auto& value) {
             using T = std::decay_t<decltype(value)>;
             if constexpr (std::is_same_v<T, std::complex<int>>) {
-                const auto& operands =
-                    std::format("{}, {}", value.real(), value.imag());
-
                 emitAssemblyLine({
-                    .label = decl.identifier,
+                    .label = node.identifier,
                     .instruction = "dd",
-                    .operands = operands,
+                    .operands = std::format("{}, {}", value.real(), value.imag()),
                 });
             } else if constexpr (std::is_same_v<T, std::complex<float>>) {
-                const auto& operands =
-                    std::format("{:g}, {:g}", value.real(), value.imag());
-
                 emitAssemblyLine({
-                    .label = decl.identifier,
+                    .label = node.identifier,
                     .instruction = "dd",
-                    .operands = operands,
+                    .operands =
+                        std::format("{:g}, {:g}", value.real(), value.imag()),
                 });
             } else if constexpr (std::is_same_v<T, int>) {
-                const auto& operands = std::format("{}", value);
-
                 emitAssemblyLine({
-                    .label = decl.identifier,
+                    .label = node.identifier,
                     .instruction = "dd",
-                    .operands = operands,
+                    .operands = std::format("{}", value),
                 });
             } else if constexpr (std::is_same_v<T, float>) {
-                const auto& operands = std::format("{:g}", value);
-
                 emitAssemblyLine({
-                    .label = decl.identifier,
+                    .label = node.identifier,
                     .instruction = "dd",
-                    .operands = operands,
+                    .operands = std::format("{:g}", value),
                 });
             }
         },
-        *decl.value
+        node.value
     );
 }
 

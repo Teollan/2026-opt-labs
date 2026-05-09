@@ -1,48 +1,58 @@
 #include "SemanticAnalyzer.hpp"
 
+#include <AstNode.hpp>
 #include <Declaration.hpp>
-#include <Rules.hpp>
 #include <SemanticError.hpp>
 #include <complex>
 #include <optional>
 #include <stdexcept>
-#include <string>
-#include <utility>
+#include <variant>
+
+namespace {
+
+Type typeOf(const Value& value) {
+    return std::visit(
+        [](const auto& alternative) {
+            using T = std::decay_t<decltype(alternative)>;
+            if constexpr (
+                std::is_same_v<T, std::complex<float>> ||
+                std::is_same_v<T, float>
+            ) {
+                return Type::Float;
+            } else {
+                return Type::Integer;
+            }
+        },
+        value
+    );
+}
+
+}  // namespace
 
 SemanticAnalyzer::SemanticAnalyzer(
-    const SymbolStore& symbols,
-    const Tree<SyntaxData>& tree,
+    const AbstractSyntaxTree& ast,
     Logger<SemanticError>& logger
 ) :
-    _symbols(symbols), _tree(tree), _logger(logger) {}
+    _ast(ast), _logger(logger) {}
 
 void SemanticAnalyzer::analyze() {
-    analyzeNode(_tree.root());
+    _ast.accept(*this);
 }
 
-void SemanticAnalyzer::analyzeNode(const TreeNode<SyntaxData>& node) {
-    const auto& data = node.data();
+const DeclarationsTable& SemanticAnalyzer::declarations() const {
+    return _declarations;
+}
 
-    if (data.rule == RuleKey::Program) {
-        analyzeProgramDeclaration(node);
-    } else if (data.rule == RuleKey::ConstantDeclaration) {
-        analyzeConstantDeclaration(node);
-    }
-
-    for (const auto& child : node.children()) {
-        analyzeNode(*child);
+void SemanticAnalyzer::visitRootNode(const RootNode& node) {
+    if (node.program) {
+        node.program->accept(*this);
     }
 }
 
-void SemanticAnalyzer::analyzeProgramDeclaration(
-    const TreeNode<SyntaxData>& node
-) {
-    const auto& identifierData = node.children()[0]->children()[0]->data();
-    const auto identifier = _symbols.lookup(identifierData.token->code);
-
+void SemanticAnalyzer::visitProgramNode(const ProgramNode& node) {
     try {
         _declarations.declare({
-            .identifier = identifier,
+            .identifier = node.identifier,
             .kind = DeclarationKind::Program,
             .type = std::nullopt,
             .value = std::nullopt,
@@ -50,72 +60,31 @@ void SemanticAnalyzer::analyzeProgramDeclaration(
         });
     } catch (const std::runtime_error&) {
         _logger.message({
-            .message = SemanticError::DuplicateIdentifier(identifier),
-            .row = identifierData.token->row,
-            .column = identifierData.token->column,
+            .message = SemanticError::DuplicateIdentifier(node.identifier),
+            .row = node.row,
+            .column = node.column,
         });
+    }
+
+    for (const auto& constant : node.constants) {
+        constant->accept(*this);
     }
 }
 
-void SemanticAnalyzer::analyzeConstantDeclaration(
-    const TreeNode<SyntaxData>& node
-) {
-    const auto& identifierNode = node.children()[0]->children()[0];
-    const auto& identifier =
-        _symbols.lookup(identifierNode->data().token->code);
-    const auto& valueNode = node.children()[1];
-
-    const auto [type, value] = evaluateComplexNumber(*valueNode);
-
+void SemanticAnalyzer::visitConstantDeclarationNode(const ConstantNode& node) {
     try {
         _declarations.declare({
-            .identifier = identifier,
+            .identifier = node.identifier,
             .kind = DeclarationKind::Constant,
-            .type = type,
-            .value = value,
+            .type = typeOf(node.value),
+            .value = node.value,
             .modifiers = {TypeModifier::Complex},
         });
     } catch (const std::runtime_error&) {
         _logger.message({
-            .message = SemanticError::DuplicateIdentifier(identifier),
-            .row = identifierNode->data().token->row,
-            .column = identifierNode->data().token->column,
+            .message = SemanticError::DuplicateIdentifier(node.identifier),
+            .row = node.row,
+            .column = node.column,
         });
     }
-}
-
-const DeclarationsTable& SemanticAnalyzer::declarations() const {
-    return _declarations;
-}
-
-std::pair<Type, Value> SemanticAnalyzer::evaluateComplexNumber(
-    const TreeNode<SyntaxData>& node
-) {
-    const auto& leftPartNode = node.children()[0]->children()[0];
-    std::optional<std::string> leftPartStr = std::nullopt;
-    if (!leftPartNode->children().empty()) {
-        leftPartStr =
-            _symbols.lookup(leftPartNode->children()[0]->data().token->code);
-    }
-
-    const auto& rightPartNode = node.children()[0]->children()[1];
-    std::optional<std::string> rightPartStr = std::nullopt;
-    if (!rightPartNode->children().empty()) {
-        rightPartStr =
-            _symbols.lookup(rightPartNode->children()[0]->data().token->code);
-    }
-
-    if (rightPartNode->data().rule == RuleKey::RightPartExp) {
-        auto magnitude = std::stof(leftPartStr.value_or("1"));
-        auto exponent = std::stof(rightPartStr.value_or("0"));
-        auto value = std::polar(magnitude, exponent);
-
-        return {Type::Float, Value{value}};
-    }
-
-    auto real = std::stoi(leftPartStr.value_or("0"));
-    auto imaginary = std::stoi(rightPartStr.value_or("0"));
-    auto value = std::complex<int>{real, imaginary};
-
-    return {Type::Integer, Value{value}};
 }
