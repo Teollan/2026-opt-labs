@@ -10,7 +10,14 @@ struct SemanticError {
     size_t column;
 
     // Error message constants
-    static auto DuplicateIdentifier(std::string identifier) {
-        return std::format("Identifier '{}' is already declared", identifier);
+    static auto DuplicateIdentifier(
+        std::string identifier,
+        size_t originalRow,
+        size_t originalColumn
+    ) {
+        return std::format(
+            "Identifier '{}' is already declared at [{}:{}]", identifier,
+            originalRow + 1, originalColumn + 1
+        );
     };
 };

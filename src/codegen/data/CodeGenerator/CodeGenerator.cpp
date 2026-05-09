@@ -12,9 +12,6 @@ CodeGenerator::CodeGenerator(
     _ast(ast), _formatter(formatter) {}
 
 void CodeGenerator::generate() {
-    _out.str("");
-    _out.clear();
-
     _ast.accept(*this);
 }
 

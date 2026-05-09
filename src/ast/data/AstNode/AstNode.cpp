@@ -1,17 +1,17 @@
 #include "AstNode.hpp"
 
-void ConstantNode::accept(class AstVisitor& visitor) {
+void ConstantNode::accept(AstVisitor& visitor) const {
     visitor.visitConstantDeclarationNode(*this);
 }
 
-void StatementsNode::accept(class AstVisitor& visitor) {
+void StatementsNode::accept(AstVisitor& visitor) const {
     visitor.visitStatementsNode(*this);
 }
 
-void ProgramNode::accept(class AstVisitor& visitor) {
+void ProgramNode::accept(AstVisitor& visitor) const {
     visitor.visitProgramNode(*this);
 }
 
-void RootNode::accept(class AstVisitor& visitor) {
+void RootNode::accept(AstVisitor& visitor) const {
     visitor.visitRootNode(*this);
 }

@@ -138,19 +138,19 @@ TEST_F(SemanticAnalyzerTest, DuplicateConstantReportsOneError) {
         "  X = '2';\n"
         "BEGIN END."
     );
-    EXPECT_EQ(errors.size(), 1u);
+    EXPECT_EQ(errors.size(), 1U);
 }
 
 TEST_F(SemanticAnalyzerTest, DuplicateConstantErrorNamesTheIdentifier) {
     auto [errors, _] = analyze(
         "PROGRAM TEST;\n"
         "CONST\n"
-        "  X = '1';\n"
+        "  X = '1';\n"  // first X at row 2, col 2
         "  X = '2';\n"
         "BEGIN END."
     );
-    ASSERT_EQ(errors.size(), 1u);
-    EXPECT_EQ(errors[0].message, SemanticError::DuplicateIdentifier("X"));
+    ASSERT_EQ(errors.size(), 1U);
+    EXPECT_EQ(errors[0].message, SemanticError::DuplicateIdentifier("X", 2, 2));
 }
 
 TEST_F(SemanticAnalyzerTest, DuplicateConstantErrorPointsToSecondDeclaration) {
@@ -161,9 +161,9 @@ TEST_F(SemanticAnalyzerTest, DuplicateConstantErrorPointsToSecondDeclaration) {
         "  X = '2';\n"     // row 3, col 2  <-- duplicate, reported
         "BEGIN END."
     );
-    ASSERT_EQ(errors.size(), 1u);
-    EXPECT_EQ(errors[0].row, 3u);
-    EXPECT_EQ(errors[0].column, 2u);
+    ASSERT_EQ(errors.size(), 1U);
+    EXPECT_EQ(errors[0].row, 3U);
+    EXPECT_EQ(errors[0].column, 2U);
 }
 
 TEST_F(SemanticAnalyzerTest, DuplicateConstantOnlyAddsOneEntry) {
@@ -175,7 +175,7 @@ TEST_F(SemanticAnalyzerTest, DuplicateConstantOnlyAddsOneEntry) {
         "BEGIN END."
     );
     EXPECT_NE(decls.lookup("X"), std::nullopt);
-    EXPECT_EQ(decls.entries().size(), 2u);  // TEST + X
+    EXPECT_EQ(decls.entries().size(), 2U);  // TEST + X
 }
 
 // --- Program name collision with constant ---
@@ -187,7 +187,7 @@ TEST_F(SemanticAnalyzerTest, ConstantNamedAfterProgramReportsOneError) {
         "  HELLO = '42';\n"
         "BEGIN END."
     );
-    EXPECT_EQ(errors.size(), 1u);
+    EXPECT_EQ(errors.size(), 1U);
 }
 
 TEST_F(SemanticAnalyzerTest, ConstantNamedAfterProgramErrorNamesTheIdentifier) {
@@ -197,8 +197,11 @@ TEST_F(SemanticAnalyzerTest, ConstantNamedAfterProgramErrorNamesTheIdentifier) {
         "  HELLO = '42';\n"
         "BEGIN END."
     );
-    ASSERT_EQ(errors.size(), 1u);
-    EXPECT_EQ(errors[0].message, SemanticError::DuplicateIdentifier("HELLO"));
+    ASSERT_EQ(errors.size(), 1U);
+    // PROGRAM HELLO; — HELLO at row 0, col 8
+    EXPECT_EQ(
+        errors[0].message, SemanticError::DuplicateIdentifier("HELLO", 0, 8)
+    );
 }
 
 TEST_F(SemanticAnalyzerTest, ConstantNamedAfterProgramErrorPointsToConstant) {
@@ -208,9 +211,9 @@ TEST_F(SemanticAnalyzerTest, ConstantNamedAfterProgramErrorPointsToConstant) {
         "  HELLO = '42';\n"  // row 2, col 2  <-- reported
         "BEGIN END."
     );
-    ASSERT_EQ(errors.size(), 1u);
-    EXPECT_EQ(errors[0].row, 2u);
-    EXPECT_EQ(errors[0].column, 2u);
+    ASSERT_EQ(errors.size(), 1U);
+    EXPECT_EQ(errors[0].row, 2U);
+    EXPECT_EQ(errors[0].column, 2U);
 }
 
 // --- Multiple redefinition errors ---
@@ -224,7 +227,7 @@ TEST_F(SemanticAnalyzerTest, MultipleRedefinitionsReportMultipleErrors) {
         "  HELLO = '3,4';\n"
         "BEGIN END."
     );
-    EXPECT_EQ(errors.size(), 2u);
+    EXPECT_EQ(errors.size(), 2U);
 }
 
 TEST_F(SemanticAnalyzerTest, MultipleRedefinitionsNameCorrectIdentifiers) {
@@ -236,9 +239,12 @@ TEST_F(SemanticAnalyzerTest, MultipleRedefinitionsNameCorrectIdentifiers) {
         "  HELLO = '3,4';\n"  // duplicate HELLO reported second
         "BEGIN END."
     );
-    ASSERT_EQ(errors.size(), 2u);
-    EXPECT_EQ(errors[0].message, SemanticError::DuplicateIdentifier("X"));
-    EXPECT_EQ(errors[1].message, SemanticError::DuplicateIdentifier("HELLO"));
+    ASSERT_EQ(errors.size(), 2U);
+    // first X at row 2, col 2; PROGRAM HELLO at row 0, col 8
+    EXPECT_EQ(errors[0].message, SemanticError::DuplicateIdentifier("X", 2, 2));
+    EXPECT_EQ(
+        errors[1].message, SemanticError::DuplicateIdentifier("HELLO", 0, 8)
+    );
 }
 
 // --- Declarations: kinds ---
@@ -366,7 +372,7 @@ TEST_F(SemanticAnalyzerTest, ConstantHasComplexModifier) {
     );
     auto decl = decls.lookup("X");
     ASSERT_TRUE(decl.has_value());
-    ASSERT_EQ(decl->modifiers.size(), 1u);
+    ASSERT_EQ(decl->modifiers.size(), 1U);
     EXPECT_EQ(decl->modifiers[0], TypeModifier::Complex);
 }
 
@@ -379,7 +385,7 @@ TEST_F(SemanticAnalyzerTest, DeclarationsAreSortedAlphabetically) {
         "BEGIN END."
     );
     auto entries = decls.entries();
-    ASSERT_EQ(entries.size(), 3u);
+    ASSERT_EQ(entries.size(), 3U);
     EXPECT_EQ(entries[0].identifier, "ALPHA");
     EXPECT_EQ(entries[1].identifier, "BETA");
     EXPECT_EQ(entries[2].identifier, "ZEBRA");

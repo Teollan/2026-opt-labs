@@ -5,8 +5,8 @@
 #include <SemanticError.hpp>
 #include <complex>
 #include <optional>
-#include <stdexcept>
 #include <variant>
+#include <vector>
 
 namespace {
 
@@ -21,6 +21,23 @@ Type typeOf(const Value& value) {
                 return Type::Float;
             } else {
                 return Type::Integer;
+            }
+        },
+        value
+    );
+}
+
+std::vector<TypeModifier> modifiersOf(const Value& value) {
+    return std::visit(
+        [](const auto& alternative) -> std::vector<TypeModifier> {
+            using T = std::decay_t<decltype(alternative)>;
+            if constexpr (
+                std::is_same_v<T, std::complex<int>> ||
+                std::is_same_v<T, std::complex<float>>
+            ) {
+                return {TypeModifier::Complex};
+            } else {
+                return {};
             }
         },
         value
@@ -50,17 +67,21 @@ void SemanticAnalyzer::visitRootNode(const RootNode& node) {
 }
 
 void SemanticAnalyzer::visitProgramNode(const ProgramNode& node) {
-    try {
-        _declarations.declare({
-            .identifier = node.identifier,
-            .kind = DeclarationKind::Program,
-            .type = std::nullopt,
-            .value = std::nullopt,
-            .modifiers = {},
-        });
-    } catch (const std::runtime_error&) {
+    auto [existing, inserted] = _declarations.declare({
+        .identifier = node.identifier,
+        .kind = DeclarationKind::Program,
+        .type = std::nullopt,
+        .value = std::nullopt,
+        .modifiers = {},
+        .row = node.row,
+        .column = node.column,
+    });
+
+    if (!inserted) {
         _logger.message({
-            .message = SemanticError::DuplicateIdentifier(node.identifier),
+            .message = SemanticError::DuplicateIdentifier(
+                node.identifier, existing->row, existing->column
+            ),
             .row = node.row,
             .column = node.column,
         });
@@ -71,20 +92,24 @@ void SemanticAnalyzer::visitProgramNode(const ProgramNode& node) {
     }
 }
 
-void SemanticAnalyzer::visitStatementsNode(const StatementsNode&) {}
+void SemanticAnalyzer::visitStatementsNode(const StatementsNode& node) {}
 
 void SemanticAnalyzer::visitConstantDeclarationNode(const ConstantNode& node) {
-    try {
-        _declarations.declare({
-            .identifier = node.identifier,
-            .kind = DeclarationKind::Constant,
-            .type = typeOf(node.value),
-            .value = node.value,
-            .modifiers = {TypeModifier::Complex},
-        });
-    } catch (const std::runtime_error&) {
+    auto [existing, inserted] = _declarations.declare({
+        .identifier = node.identifier,
+        .kind = DeclarationKind::Constant,
+        .type = typeOf(node.value),
+        .value = node.value,
+        .modifiers = modifiersOf(node.value),
+        .row = node.row,
+        .column = node.column,
+    });
+
+    if (!inserted) {
         _logger.message({
-            .message = SemanticError::DuplicateIdentifier(node.identifier),
+            .message = SemanticError::DuplicateIdentifier(
+                node.identifier, existing->row, existing->column
+            ),
             .row = node.row,
             .column = node.column,
         });

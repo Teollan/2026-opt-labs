@@ -1,16 +1,16 @@
 #pragma once
 
+class ConstantNode;
+class StatementsNode;
+class ProgramNode;
+class RootNode;
+
 class AstVisitor {
 public:
     virtual ~AstVisitor() = default;
 
-    virtual void visitConstantDeclarationNode(
-        const class ConstantNode& node
-    ) = 0;
-
-    virtual void visitStatementsNode(const class StatementsNode& node) = 0;
-
-    virtual void visitProgramNode(const class ProgramNode& node) = 0;
-
-    virtual void visitRootNode(const class RootNode& node) = 0;
+    virtual void visitConstantDeclarationNode(const ConstantNode& node) = 0;
+    virtual void visitStatementsNode(const StatementsNode& node) = 0;
+    virtual void visitProgramNode(const ProgramNode& node) = 0;
+    virtual void visitRootNode(const RootNode& node) = 0;
 };

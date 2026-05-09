@@ -1,15 +1,7 @@
 #pragma once
 
-#include <sys/types.h>
-
 #include <string>
 
-struct AssemblyLine {
-    std::string label = "";
-    std::string instruction = "";
-    std::string operands = "";
-    std::string comment = "";
-};
 class AssemblyFormatter {
 private:
     unsigned int _labelWidth;

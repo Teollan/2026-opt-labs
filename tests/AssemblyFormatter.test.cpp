@@ -2,8 +2,6 @@
 
 #include <AssemblyFormatter.hpp>
 
-class AssemblyFormatterTest : public ::testing::Test {};
-
 // --- Common ASM column widths: label=8, instruction=8, operands=16 ---
 
 class CommonAsmWidthFormatterTest : public ::testing::Test {

@@ -75,16 +75,22 @@ TEST_F(DeclarationsTableTest, DeclareManyDistinctIdentifiers) {
     EXPECT_NE(table.lookup("c"), std::nullopt);
 }
 
-TEST_F(DeclarationsTableTest, DeclareThrowsOnDuplicate) {
+TEST_F(DeclarationsTableTest, DeclareReportsInsertionOnFirstCall) {
+    auto [_, inserted] = table.declare(makeConstant("x"));
+    EXPECT_TRUE(inserted);
+}
+
+TEST_F(DeclarationsTableTest, DeclareReportsDuplicate) {
     table.declare(makeConstant("x"));
-    EXPECT_THROW(table.declare(makeConstant("x")), std::runtime_error);
+    auto [existing, inserted] = table.declare(makeConstant("x"));
+    EXPECT_FALSE(inserted);
+    ASSERT_NE(existing, nullptr);
+    EXPECT_EQ(existing->identifier, "x");
 }
 
 TEST_F(DeclarationsTableTest, DeclareDoesNotOverwriteOnDuplicate) {
     table.declare(makeConstant("x", Type::Integer));
-    try {
-        table.declare(makeConstant("x", Type::Float));
-    } catch (const std::runtime_error&) {}
+    table.declare(makeConstant("x", Type::Float));
     EXPECT_EQ(table.lookup("x")->type, Type::Integer);
 }
 

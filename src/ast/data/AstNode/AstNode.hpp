@@ -11,7 +11,7 @@
 class AstNode {
 public:
     virtual ~AstNode() = default;
-    virtual void accept(class AstVisitor& visitor) = 0;
+    virtual void accept(AstVisitor& visitor) const = 0;
 };
 
 class ConstantNode : public AstNode {
@@ -21,12 +21,12 @@ public:
     size_t row = 0;
     size_t column = 0;
 
-    void accept(class AstVisitor& visitor) override;
+    void accept(AstVisitor& visitor) const override;
 };
 
 class StatementsNode : public AstNode {
 public:
-    void accept(class AstVisitor& visitor) override;
+    void accept(AstVisitor& visitor) const override;
 };
 
 class ProgramNode : public AstNode {
@@ -37,12 +37,12 @@ public:
     size_t row = 0;
     size_t column = 0;
 
-    void accept(class AstVisitor& visitor) override;
+    void accept(AstVisitor& visitor) const override;
 };
 
 class RootNode : public AstNode {
 public:
     std::unique_ptr<ProgramNode> program;
 
-    void accept(class AstVisitor& visitor) override;
+    void accept(AstVisitor& visitor) const override;
 };

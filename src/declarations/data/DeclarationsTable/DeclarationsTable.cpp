@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <ranges>
-#include <stdexcept>
 
 std::optional<Declaration> DeclarationsTable::lookup(
     const std::string& identifier
@@ -14,12 +13,14 @@ std::optional<Declaration> DeclarationsTable::lookup(
     return _declarations.at(identifier);
 }
 
-void DeclarationsTable::declare(Declaration declaration) {
-    if (lookup(declaration.identifier)) {
-        throw std::runtime_error("");
-    }
+std::pair<const Declaration*, bool> DeclarationsTable::declare(
+    Declaration declaration
+) {
+    auto [iterator, inserted] = _declarations.try_emplace(
+        declaration.identifier, std::move(declaration)
+    );
 
-    _declarations[declaration.identifier] = declaration;
+    return {&iterator->second, inserted};
 }
 
 std::vector<Declaration> DeclarationsTable::entries() const {

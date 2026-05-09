@@ -3,6 +3,7 @@
 #include <Declaration.hpp>
 #include <optional>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 class DeclarationsTable {
@@ -14,7 +15,7 @@ public:
         const std::string& identifier
     ) const;
 
-    void declare(Declaration declaration);
+    std::pair<const Declaration*, bool> declare(Declaration declaration);
 
     [[nodiscard]] std::vector<Declaration> entries() const;
 };

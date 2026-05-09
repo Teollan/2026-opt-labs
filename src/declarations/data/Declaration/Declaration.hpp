@@ -2,6 +2,7 @@
 
 #include <Type.hpp>
 #include <complex>
+#include <cstddef>
 #include <optional>
 #include <string>
 #include <variant>
@@ -20,4 +21,6 @@ struct Declaration {
     std::optional<Type> type;
     std::optional<Value> value;
     std::vector<TypeModifier> modifiers;
+    size_t row = 0;
+    size_t column = 0;
 };
