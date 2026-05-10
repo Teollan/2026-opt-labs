@@ -1,0 +1,7 @@
+PROGRAM MIXED;
+CONST
+  X = '10@20';        (* lexical error: '@' is an invalid character *)
+  Y '5$EXP(3)';       (* syntax error: missing '=' *)
+  X = '1,2';          (* semantic error: duplicate 'X' *)
+BEGIN
+END.
