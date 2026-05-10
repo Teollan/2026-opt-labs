@@ -9,7 +9,7 @@ class AstVisitor {
 public:
     virtual ~AstVisitor() = default;
 
-    virtual void visitConstantDeclarationNode(const ConstantNode& node) = 0;
+    virtual void visitConstantNode(const ConstantNode& node) = 0;
     virtual void visitStatementsNode(const StatementsNode& node) = 0;
     virtual void visitProgramNode(const ProgramNode& node) = 0;
     virtual void visitRootNode(const RootNode& node) = 0;

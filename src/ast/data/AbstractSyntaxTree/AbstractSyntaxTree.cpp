@@ -12,9 +12,7 @@ AbstractSyntaxTree::AbstractSyntaxTree(
     const Tree<SyntaxData>& tree,
     const SymbolStore& symbols
 ) :
-    _symbols(symbols) {
-    root = std::make_unique<RootNode>();
-
+    _symbols(symbols), root(std::make_unique<RootNode>()) {
     foldAxiom(tree.root());
 }
 
@@ -26,21 +24,20 @@ void AbstractSyntaxTree::foldAxiom(const TreeNode<SyntaxData>& node) {
     const auto& signalProgram = *node.children()[0];
     const auto& program = *signalProgram.children()[0];
 
-    root->program = foldProgram(program);
+    root->setProgram(foldProgram(program));
 }
 
 std::unique_ptr<ProgramNode> AbstractSyntaxTree::foldProgram(
     const TreeNode<SyntaxData>& node
 ) {
-    auto program = std::make_unique<ProgramNode>();
-
     const auto& procedureIdentifier = *node.children()[0];
     const auto& identifierTerminal = *procedureIdentifier.children()[0];
     const auto& identifierToken = *identifierTerminal.data().token;
 
-    program->identifier = _symbols.lookup(identifierToken.code);
-    program->row = identifierToken.row;
-    program->column = identifierToken.column;
+    auto program = std::make_unique<ProgramNode>(
+        _symbols.lookup(identifierToken.code), identifierToken.row,
+        identifierToken.column
+    );
 
     const auto& block = *node.children()[1];
     foldBlock(block, *program);
@@ -55,7 +52,7 @@ void AbstractSyntaxTree::foldBlock(
     const auto& declarations = *node.children()[0];
 
     foldDeclarations(declarations, program);
-    program.statements = std::make_unique<StatementsNode>();
+    program.setStatements(std::make_unique<StatementsNode>());
 }
 
 void AbstractSyntaxTree::foldDeclarations(
@@ -82,7 +79,7 @@ void AbstractSyntaxTree::foldConstantDeclarationsList(
     }
 
     const auto& declaration = *node.children()[0];
-    program.constants.push_back(foldConstantDeclaration(declaration));
+    program.addConstant(foldConstantDeclaration(declaration));
 
     const auto& rest = *node.children()[1];
     foldConstantDeclarationsList(rest, program);
@@ -91,20 +88,16 @@ void AbstractSyntaxTree::foldConstantDeclarationsList(
 std::unique_ptr<ConstantNode> AbstractSyntaxTree::foldConstantDeclaration(
     const TreeNode<SyntaxData>& node
 ) {
-    auto constant = std::make_unique<ConstantNode>();
-
     const auto& constantIdentifier = *node.children()[0];
     const auto& identifierTerminal = *constantIdentifier.children()[0];
     const auto& identifierToken = *identifierTerminal.data().token;
 
-    constant->identifier = _symbols.lookup(identifierToken.code);
-    constant->row = identifierToken.row;
-    constant->column = identifierToken.column;
-
     const auto& constantValue = *node.children()[1];
-    constant->value = evaluateConstant(constantValue);
 
-    return constant;
+    return std::make_unique<ConstantNode>(
+        _symbols.lookup(identifierToken.code), evaluateConstant(constantValue),
+        identifierToken.row, identifierToken.column
+    );
 }
 
 Value AbstractSyntaxTree::evaluateConstant(const TreeNode<SyntaxData>& node) {

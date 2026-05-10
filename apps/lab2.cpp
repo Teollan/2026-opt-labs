@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
         .expectFlag("tree", "T")
         .expectFlag("identifiers", "i")
         .expectFlag("literals", "l")
-        .expectString("dot", "d", false)
+        .expectString("dot", "D", false)
         .parse();
 
     auto errorFormatter = [](const auto& err) {

@@ -67,16 +67,7 @@ void Parser::parseProgram() {
 void Parser::parseBlock() {
     auto scope = grow({.rule = RuleKey::Block, .token = _tokens.peek()});
 
-    try {
-        parseDeclarations();
-    } catch (const SyntaxError& error) {
-        if (error.message == SyntaxError::ExpectedConstKeyword) {
-            skipToProcedureBody();
-        } else {
-            throw error;
-        }
-    }
-
+    parseDeclarations();
     expect(Keyword::Begin, SyntaxError::ExpectedBeginKeyword);
     parseStatementsList();
     expect(Keyword::End, SyntaxError::ExpectedEndKeyword);
@@ -104,11 +95,12 @@ void Parser::parseConstantDeclarations() {
 
         expect(Keyword::Const, SyntaxError::ExpectedConstKeyword);
         parseConstantDeclarationsList();
+    } else {
+        auto scope = grow(
+            {.rule = RuleKey::ConstantDeclarationsEmpty,
+             .token = _tokens.peek()}
+        );
     }
-
-    auto scope = grow(
-        {.rule = RuleKey::ConstantDeclarationsEmpty, .token = _tokens.peek()}
-    );
 }
 
 // 7. <constant-declarations-list> --> <constant-declaration>

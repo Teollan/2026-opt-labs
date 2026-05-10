@@ -2,14 +2,8 @@
 
 #include <format>
 
-AssemblyFormatter::AssemblyFormatter(
-    unsigned int labelWidth,
-    unsigned int instructionWidth,
-    unsigned int operandsWidth
-) :
-    _labelWidth(labelWidth),
-    _instructionWidth(instructionWidth),
-    _operandsWidth(operandsWidth) {}
+AssemblyFormatter::AssemblyFormatter(AssemblyFormatterConfig config) :
+    _config(config) {}
 
 std::string AssemblyFormatter::commentLine(const std::string& comment) const {
     return formatComment(comment) + "\n";
@@ -20,7 +14,7 @@ std::string AssemblyFormatter::blankLine() const {
 }
 
 std::string AssemblyFormatter::sectionLine(const std::string& name) const {
-    return indent(_labelWidth) + std::format("section {}:\n", name);
+    return indent(_config.labelWidth) + std::format("section {}:\n", name);
 }
 
 std::string AssemblyFormatter::labelLine(const std::string& label) const {
@@ -30,16 +24,16 @@ std::string AssemblyFormatter::labelLine(const std::string& label) const {
 std::string AssemblyFormatter::instructionLine(
     const std::string& instruction
 ) const {
-    return indent(_labelWidth) + instruction + "\n";
+    return indent(_config.labelWidth) + instruction + "\n";
 }
 
 std::string AssemblyFormatter::instructionLine(
     const std::string& instruction,
     const std::string& operands
 ) const {
-    auto instructionPad = _instructionWidth > 0 ? _instructionWidth - 1 : 0;
+    auto instructionPad = _config.instructionWidth > 0 ? _config.instructionWidth - 1 : 0;
 
-    std::string line = indent(_labelWidth);
+    std::string line = indent(_config.labelWidth);
     line += pad(instruction, instructionPad);
     line += " ";
     line += operands;
@@ -53,8 +47,8 @@ std::string AssemblyFormatter::constantLine(
     const std::string& size,
     const std::string& value
 ) const {
-    auto labelPad = _labelWidth > 0 ? _labelWidth - 1 : 0;
-    auto instructionPad = _instructionWidth > 0 ? _instructionWidth - 1 : 0;
+    auto labelPad = _config.labelWidth > 0 ? _config.labelWidth - 1 : 0;
+    auto instructionPad = _config.instructionWidth > 0 ? _config.instructionWidth - 1 : 0;
 
     std::string line = pad(formatLabel(label), labelPad);
     line += " ";

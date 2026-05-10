@@ -16,16 +16,16 @@ void CodeGenerator::generate() {
 }
 
 void CodeGenerator::visitRootNode(const RootNode& node) {
-    if (node.program) {
-        node.program->accept(*this);
+    if (node.program()) {
+        node.program()->accept(*this);
     }
 }
 
 void CodeGenerator::visitProgramNode(const ProgramNode& node) {
-    if (!node.constants.empty()) {
+    if (!node.constants().empty()) {
         _out << _formatter.sectionLine(".data");
 
-        for (const auto& constant : node.constants) {
+        for (const auto& constant : node.constants()) {
             constant->accept(*this);
         }
 
@@ -35,36 +35,28 @@ void CodeGenerator::visitProgramNode(const ProgramNode& node) {
     _out << _formatter.sectionLine(".text");
     _out << _formatter.instructionLine("global", "_start");
 
-    if (node.statements) {
-        node.statements->accept(*this);
+    if (node.statements()) {
+        node.statements()->accept(*this);
     }
 }
 
-void CodeGenerator::visitConstantDeclarationNode(const ConstantNode& node) {
+void CodeGenerator::visitConstantNode(const ConstantNode& node) {
     std::visit(
         [&](const auto& value) {
             using T = std::decay_t<decltype(value)>;
             if constexpr (std::is_same_v<T, std::complex<int>>) {
                 _out << _formatter.constantLine(
-                    node.identifier, "dd",
+                    node.identifier(), "dd",
                     std::format("{}, {}", value.real(), value.imag())
                 );
             } else if constexpr (std::is_same_v<T, std::complex<float>>) {
                 _out << _formatter.constantLine(
-                    node.identifier, "dd",
+                    node.identifier(), "dd",
                     std::format("{:g}, {:g}", value.real(), value.imag())
-                );
-            } else if constexpr (std::is_same_v<T, int>) {
-                _out << _formatter.constantLine(
-                    node.identifier, "dd", std::format("{}", value)
-                );
-            } else if constexpr (std::is_same_v<T, float>) {
-                _out << _formatter.constantLine(
-                    node.identifier, "dd", std::format("{:g}", value)
                 );
             }
         },
-        node.value
+        node.value()
     );
 }
 

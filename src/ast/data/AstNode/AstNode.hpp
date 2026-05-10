@@ -2,7 +2,6 @@
 
 #include <AstVisitor.hpp>
 #include <Declaration.hpp>
-#include <TreeNode.hpp>
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -15,11 +14,21 @@ public:
 };
 
 class ConstantNode : public AstNode {
+private:
+    std::string _identifier;
+    Value _value;
+    size_t _row;
+    size_t _column;
+
 public:
-    std::string identifier;
-    Value value;
-    size_t row = 0;
-    size_t column = 0;
+    ConstantNode(
+        std::string identifier, Value value, size_t row, size_t column
+    );
+
+    [[nodiscard]] const std::string& identifier() const;
+    [[nodiscard]] const Value& value() const;
+    [[nodiscard]] size_t row() const;
+    [[nodiscard]] size_t column() const;
 
     void accept(AstVisitor& visitor) const override;
 };
@@ -30,19 +39,37 @@ public:
 };
 
 class ProgramNode : public AstNode {
+private:
+    std::string _identifier;
+    std::vector<std::unique_ptr<ConstantNode>> _constants;
+    std::unique_ptr<StatementsNode> _statements;
+    size_t _row;
+    size_t _column;
+
 public:
-    std::string identifier;
-    std::vector<std::unique_ptr<ConstantNode>> constants;
-    std::unique_ptr<StatementsNode> statements;
-    size_t row = 0;
-    size_t column = 0;
+    ProgramNode(std::string identifier, size_t row, size_t column);
+
+    [[nodiscard]] const std::string& identifier() const;
+    [[nodiscard]] const std::vector<std::unique_ptr<ConstantNode>>& constants(
+    ) const;
+    [[nodiscard]] const StatementsNode* statements() const;
+    [[nodiscard]] size_t row() const;
+    [[nodiscard]] size_t column() const;
+
+    void addConstant(std::unique_ptr<ConstantNode> constant);
+    void setStatements(std::unique_ptr<StatementsNode> statements);
 
     void accept(AstVisitor& visitor) const override;
 };
 
 class RootNode : public AstNode {
+private:
+    std::unique_ptr<ProgramNode> _program;
+
 public:
-    std::unique_ptr<ProgramNode> program;
+    [[nodiscard]] const ProgramNode* program() const;
+
+    void setProgram(std::unique_ptr<ProgramNode> program);
 
     void accept(AstVisitor& visitor) const override;
 };

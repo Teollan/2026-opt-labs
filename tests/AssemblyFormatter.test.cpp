@@ -6,7 +6,11 @@
 
 class CommonAsmWidthFormatterTest : public ::testing::Test {
 protected:
-    AssemblyFormatter formatter{8, 8, 16};
+    AssemblyFormatter formatter{{
+        .labelWidth = 8,
+        .instructionWidth = 8,
+        .operandsWidth = 16,
+    }};
 };
 
 TEST_F(CommonAsmWidthFormatterTest, BlankLineIsJustNewline) {
@@ -61,7 +65,7 @@ TEST_F(
 
 class ZeroWidthFormatterTest : public ::testing::Test {
 protected:
-    AssemblyFormatter formatter{0, 0, 0};
+    AssemblyFormatter formatter{{}};
 };
 
 TEST_F(ZeroWidthFormatterTest, BlankLineIsJustNewline) {

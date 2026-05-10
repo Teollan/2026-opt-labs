@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
         .expectFlag("tree", "T")
         .expectFlag("identifiers", "i")
         .expectFlag("literals", "l")
-        .expectFlag("decl", "d")
+        .expectFlag("declarations", "d")
         .expectFlag("asm", "a")
         .parse();
 
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
         SyntaxTreeView("\nSyntax Tree", parser.tree(), symbols).print();
     }
 
-    if (args.getFlag("decl")) {
+    if (args.getFlag("declarations")) {
         DeclarationsTableView("\nDeclarations", semantics.declarations())
             .print();
     }
@@ -80,7 +80,11 @@ int main(int argc, char* argv[]) {
                            !analyzerLogger.messages().empty();
 
     if (!hasErrors) {
-        AssemblyFormatter assemblyFormatter(8, 8, 16);
+        AssemblyFormatter assemblyFormatter({
+            .labelWidth = 8,
+            .instructionWidth = 8,
+            .operandsWidth = 16,
+        });
 
         CodeGenerator codegen(ast, assemblyFormatter);
         codegen.generate();

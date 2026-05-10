@@ -2,11 +2,15 @@
 
 #include <string>
 
+struct AssemblyFormatterConfig {
+    unsigned int labelWidth = 0;
+    unsigned int instructionWidth = 0;
+    unsigned int operandsWidth = 0;
+};
+
 class AssemblyFormatter {
 private:
-    unsigned int _labelWidth;
-    unsigned int _instructionWidth;
-    unsigned int _operandsWidth;
+    AssemblyFormatterConfig _config;
 
     static std::string formatLabel(const std::string& label);
     static std::string formatComment(const std::string& comment);
@@ -15,11 +19,7 @@ private:
     static std::string pad(const std::string& text, unsigned int width);
 
 public:
-    AssemblyFormatter(
-        unsigned int labelWidth,
-        unsigned int instructionWidth,
-        unsigned int operandsWidth
-    );
+    explicit AssemblyFormatter(AssemblyFormatterConfig config);
 
     [[nodiscard]] std::string sectionLine(const std::string& name) const;
     [[nodiscard]] std::string instructionLine(

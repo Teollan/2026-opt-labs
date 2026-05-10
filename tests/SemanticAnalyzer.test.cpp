@@ -362,19 +362,7 @@ TEST_F(SemanticAnalyzerTest, ExpConstantValueIsPolarForm) {
     EXPECT_FLOAT_EQ(cval.imag(), expected.imag());
 }
 
-// --- Declarations: modifiers and ordering ---
-
-TEST_F(SemanticAnalyzerTest, ConstantHasComplexModifier) {
-    auto [_, decls] = analyze(
-        "PROGRAM TEST;\n"
-        "CONST X = '1';\n"
-        "BEGIN END."
-    );
-    auto decl = decls.lookup("X");
-    ASSERT_TRUE(decl.has_value());
-    ASSERT_EQ(decl->modifiers.size(), 1U);
-    EXPECT_EQ(decl->modifiers[0], TypeModifier::Complex);
-}
+// --- Declarations: ordering ---
 
 TEST_F(SemanticAnalyzerTest, DeclarationsAreSortedAlphabetically) {
     auto [_, decls] = analyze(

@@ -117,6 +117,7 @@ TEST_F(ParserTest, ParsesProgramWithOneConstant) {
     auto& program = *root.children()[0]->children()[0];
     auto& block = *program.children()[1];
     auto& declarations = *block.children()[0];
+    ASSERT_EQ(declarations.children().size(), 1);
 
     // CONST <constant-declarations-list> — 1 nonterminal
     auto& constDecls = *declarations.children()[0];
@@ -178,6 +179,7 @@ TEST_F(ParserTest, ParsesConstantWithCommaVariant) {
     const auto& root = parser.tree().root();
     auto& program = *root.children()[0]->children()[0];
     auto& block = *program.children()[1];
+    ASSERT_EQ(block.children()[0]->children().size(), 1);
     auto& decl =
         *block.children()[0]->children()[0]->children()[0]->children()[0];
     auto& complexNum = *decl.children()[1]->children()[0];
@@ -206,6 +208,7 @@ TEST_F(ParserTest, ParsesConstantWithExpVariant) {
     const auto& root = parser.tree().root();
     auto& program = *root.children()[0]->children()[0];
     auto& block = *program.children()[1];
+    ASSERT_EQ(block.children()[0]->children().size(), 1);
     auto& decl =
         *block.children()[0]->children()[0]->children()[0]->children()[0];
     auto& complexNum = *decl.children()[1]->children()[0];
@@ -234,6 +237,7 @@ TEST_F(ParserTest, ParsesEmptyComplexNumber) {
     const auto& root = parser.tree().root();
     auto& program = *root.children()[0]->children()[0];
     auto& block = *program.children()[1];
+    ASSERT_EQ(block.children()[0]->children().size(), 1);
     auto& decl =
         *block.children()[0]->children()[0]->children()[0]->children()[0];
     auto& complexNum = *decl.children()[1]->children()[0];
@@ -294,6 +298,7 @@ TEST_F(ParserTest, ParsesCommaOnlyConstant) {
     const auto& root = parser.tree().root();
     auto& program = *root.children()[0]->children()[0];
     auto& block = *program.children()[1];
+    ASSERT_EQ(block.children()[0]->children().size(), 1);
     auto& decl =
         *block.children()[0]->children()[0]->children()[0]->children()[0];
     auto& complexNum = *decl.children()[1]->children()[0];
@@ -317,6 +322,7 @@ TEST_F(ParserTest, ParsesExpOnlyConstant) {
     const auto& root = parser.tree().root();
     auto& program = *root.children()[0]->children()[0];
     auto& block = *program.children()[1];
+    ASSERT_EQ(block.children()[0]->children().size(), 1);
     auto& decl =
         *block.children()[0]->children()[0]->children()[0]->children()[0];
     auto& complexNum = *decl.children()[1]->children()[0];
@@ -429,6 +435,7 @@ TEST_F(ParserTest, RecoverFromMissingEqualsAndContinues) {
     const auto& root = parser.tree().root();
     auto& program = *root.children()[0]->children()[0];
     auto& block = *program.children()[1];
+    ASSERT_EQ(block.children()[0]->children().size(), 1);
     auto& constDecls = *block.children()[0]->children()[0];
     // Should have parsed at least some declarations
     ASSERT_GE(constDecls.children().size(), 1);
@@ -537,6 +544,7 @@ TEST_F(ParserTest, RecoverFromMissingSemicolonImplicitly) {
     const auto& root = parser.tree().root();
     auto& program = *root.children()[0]->children()[0];
     auto& block = *program.children()[1];
+    ASSERT_EQ(block.children()[0]->children().size(), 1);
     auto& constDecls = *block.children()[0]->children()[0];
     auto& declList1 = *constDecls.children()[0];
 
@@ -569,6 +577,7 @@ TEST_F(ParserTest, RecoverFromMissingClosingQuoteAndContinues) {
     const auto& root = parser.tree().root();
     auto& program = *root.children()[0]->children()[0];
     auto& block = *program.children()[1];
+    ASSERT_EQ(block.children()[0]->children().size(), 1);
     auto& constDecls = *block.children()[0]->children()[0];
     ASSERT_GE(constDecls.children().size(), 1);
 }
@@ -613,6 +622,7 @@ TEST_F(ParserTest, MultipleDeclarationErrorsRecoverIndependently) {
     const auto& root = parser.tree().root();
     auto& program = *root.children()[0]->children()[0];
     auto& block = *program.children()[1];
+    ASSERT_EQ(block.children()[0]->children().size(), 1);
     auto& constDecls = *block.children()[0]->children()[0];
     ASSERT_GE(constDecls.children().size(), 1);
 }

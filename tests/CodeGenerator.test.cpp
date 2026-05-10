@@ -73,7 +73,7 @@ protected:
         SemanticAnalyzer analyzer(ast, analyzerLogger);
         analyzer.analyze();
 
-        AssemblyFormatter assemblyFormatter(0, 0, 0);
+        AssemblyFormatter assemblyFormatter({});
 
         CodeGenerator codegen(ast, assemblyFormatter);
         codegen.generate();
