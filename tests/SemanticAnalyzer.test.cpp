@@ -283,7 +283,7 @@ TEST_F(SemanticAnalyzerTest, PlainIntegerConstantHasIntegerType) {
         "CONST X = '42';\n"
         "BEGIN END."
     );
-    ASSERT_EQ(decls.lookup("X")->type, Type::Integer);
+    ASSERT_EQ(decls.lookup("X")->type, Type::ComplexInteger);
 }
 
 TEST_F(SemanticAnalyzerTest, CommaConstantHasIntegerType) {
@@ -292,7 +292,7 @@ TEST_F(SemanticAnalyzerTest, CommaConstantHasIntegerType) {
         "CONST X = '2,3';\n"
         "BEGIN END."
     );
-    ASSERT_EQ(decls.lookup("X")->type, Type::Integer);
+    ASSERT_EQ(decls.lookup("X")->type, Type::ComplexInteger);
 }
 
 TEST_F(SemanticAnalyzerTest, ExpConstantHasFloatType) {
@@ -301,7 +301,7 @@ TEST_F(SemanticAnalyzerTest, ExpConstantHasFloatType) {
         "CONST X = '5$EXP(6)';\n"
         "BEGIN END."
     );
-    ASSERT_EQ(decls.lookup("X")->type, Type::Float);
+    ASSERT_EQ(decls.lookup("X")->type, Type::ComplexFloat);
 }
 
 TEST_F(SemanticAnalyzerTest, PlainIntegerConstantValueIsCorrect) {

@@ -13,9 +13,9 @@ Type typeOf(const Value& value) {
         [](const auto& alternative) {
             using T = std::decay_t<decltype(alternative)>;
             if constexpr (std::is_same_v<T, std::complex<float>>) {
-                return Type::Float;
+                return Type::ComplexFloat;
             } else {
-                return Type::Integer;
+                return Type::ComplexInteger;
             }
         },
         value

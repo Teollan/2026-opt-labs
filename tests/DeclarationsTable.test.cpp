@@ -9,7 +9,7 @@ protected:
 
     Declaration makeConstant(
         std::string id,
-        Type type = Type::Integer,
+        Type type = Type::ComplexInteger,
         std::optional<Value> value = std::nullopt
     ) {
         return Declaration{
@@ -43,13 +43,13 @@ TEST_F(DeclarationsTableTest, LookupReturnsCorrectKind) {
 }
 
 TEST_F(DeclarationsTableTest, LookupReturnsCorrectType) {
-    table.declare(makeConstant("x", Type::Float));
-    EXPECT_EQ(table.lookup("x")->type, Type::Float);
+    table.declare(makeConstant("x", Type::ComplexFloat));
+    EXPECT_EQ(table.lookup("x")->type, Type::ComplexFloat);
 }
 
 TEST_F(DeclarationsTableTest, LookupReturnsCorrectValue) {
     table.declare(
-        makeConstant("x", Type::Integer, Value{std::complex<int>{42, 0}})
+        makeConstant("x", Type::ComplexInteger, Value{std::complex<int>{42, 0}})
     );
     ASSERT_TRUE(table.lookup("x")->value.has_value());
     EXPECT_EQ(
@@ -93,9 +93,9 @@ TEST_F(DeclarationsTableTest, DeclareReportsDuplicate) {
 }
 
 TEST_F(DeclarationsTableTest, DeclareDoesNotOverwriteOnDuplicate) {
-    table.declare(makeConstant("x", Type::Integer));
-    table.declare(makeConstant("x", Type::Float));
-    EXPECT_EQ(table.lookup("x")->type, Type::Integer);
+    table.declare(makeConstant("x", Type::ComplexInteger));
+    table.declare(makeConstant("x", Type::ComplexFloat));
+    EXPECT_EQ(table.lookup("x")->type, Type::ComplexInteger);
 }
 
 // entries
@@ -124,15 +124,14 @@ TEST_F(DeclarationsTableTest, EntriesAreSortedByIdentifier) {
 
 TEST_F(DeclarationsTableTest, EntriesContainCorrectData) {
     table.declare(makeConstant(
-        "x", Type::Float, Value{std::complex<float>{3.14f, 0.0f}}
+        "x", Type::ComplexFloat, Value{std::complex<float>{3.14f, 0.0f}}
     ));
     auto result = table.entries();
     ASSERT_EQ(result.size(), 1u);
     EXPECT_EQ(result[0].identifier, "x");
-    EXPECT_EQ(result[0].type, Type::Float);
+    EXPECT_EQ(result[0].type, Type::ComplexFloat);
     ASSERT_TRUE(result[0].value.has_value());
     auto cval = std::get<std::complex<float>>(*result[0].value);
     EXPECT_FLOAT_EQ(cval.real(), 3.14f);
     EXPECT_FLOAT_EQ(cval.imag(), 0.0f);
 }
-

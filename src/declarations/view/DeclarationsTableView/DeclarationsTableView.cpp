@@ -27,10 +27,10 @@ std::string extractDeclarationType(const Declaration& decl) {
     }
 
     switch (decl.type.value()) {
-        case Type::Integer:
-            return "Integer";
-        case Type::Float:
-            return "Float";
+        case Type::ComplexInteger:
+            return "Complex Integer";
+        case Type::ComplexFloat:
+            return "Complex Float";
         default:
             return "?";
     }
@@ -65,7 +65,7 @@ DeclarationsTableView::DeclarationsTableView(
     _table(std::move(title), data.entries()) {
     _table.addColumn("Identifier", "{:<20}", extractDeclarationIdentifier)
         .addColumn("Kind", "{:<10}", extractDeclarationKind)
-        .addColumn("Type", "{:<10}", extractDeclarationType)
+        .addColumn("Type", "{:<20}", extractDeclarationType)
         .addColumn("Value", "{:<30}", extractDeclarationValue);
 }
 
